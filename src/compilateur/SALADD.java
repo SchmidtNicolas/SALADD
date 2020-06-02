@@ -234,16 +234,7 @@ public class SALADD {
 		ord = new Ordonnancement();
 		LecteurXML xml=new LecteurXML();
 		if(arg_plus){
-			if(file_names.get(0).contains(".xml"))
-				xml.lecture(file_names.get(0));
-			else if(file_names.get(0).contains(".cnf"))
-				xml.lectureCNF(file_names.get(0));
-			else if(file_names.get(0).contains(".cons"))
-				xml.readContraintes(file_names.get(0));
-			else
-				xml.lecture(file_names.get(0));
-
-
+			xml.lecture(file_names.get(0));
 		}else{	
 			xml.lectureBIFpifi(file_names.get(0), arg_plus);
 		}
@@ -257,9 +248,7 @@ public class SALADD {
 			System.out.println("bug nb variables");
 		
 		
-		//ord.reordoner(xml.getInvolvedVariablesEntree(), arg_heuristique, false);			//<---
-		xml.graphAdjascenceSimple("adjGS");
-		xml.graphAdjascence("adjG", true, true);
+		ord.reordoner(xml.getInvolvedVariablesEntree(), arg_heuristique, false);			//<---
 		xml.actualiseVariables();
 		xml.compactConstraint();
 		
@@ -309,11 +298,7 @@ public class SALADD {
 				//traduction en valeur de 0 a n (au lieu de strings)
 					for(int j=0; j<contraintes.length; j++){
 						for(int k=1; k<contraintes[j].length; k++){
-							// tag2020
-							if(contraintesS[j][k].startsWith("!"))
-								contraintes[j][k]=-ord.getVariables().get(k-1).conv(contraintesS[j][k].substring(1))-2;
-							else
-								contraintes[j][k]=ord.getVariables().get(k-1).conv(contraintesS[j][k]);
+							contraintes[j][k]=ord.getVariables().get(k-1).conv(contraintesS[j][k]);
 						}
 					}
 

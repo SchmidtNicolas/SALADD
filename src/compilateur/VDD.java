@@ -789,12 +789,6 @@ uht.detect();
 //            						id.remove(j);
 //            						j--;
             					}
-            					if(data.triplet.get(j).var[temp.variable.pos]<=-2 && data.triplet.get(j).var[temp.variable.pos]!=(-i-2)){				//tag2020 : -1 = not concerned; -2 = !0 ; -3 = !1 ; -4 = !2 ; ...
-                						nextData.triplet.add(data.triplet.get(j));
-//               						var.remove(j);
-//                						id.remove(j);
-//                						j--;
-            					}
             				}
             				//ici on developpe ce groupe la
             				if (!nextData.triplet.isEmpty()){
