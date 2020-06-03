@@ -234,7 +234,15 @@ public class SALADD {
 		ord = new Ordonnancement();
 		LecteurXML xml=new LecteurXML();
 		if(arg_plus){
-			xml.lecture(file_names.get(0));
+			if(file_names.get(0).contains(".xml"))
+				xml.lecture(file_names.get(0));
+			else if(file_names.get(0).contains(".cnf"))
+				xml.lectureCNF(file_names.get(0));
+			//else if(file_names.get(0).contains(".cons"))
+			//	xml.readContraintes(file_names.get(0));
+			else
+				xml.lecture(file_names.get(0));
+
 		}else{	
 			xml.lectureBIFpifi(file_names.get(0), arg_plus);
 		}
