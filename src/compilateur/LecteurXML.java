@@ -1157,7 +1157,7 @@ public void lectureBIF(String nomFichier, boolean arg_plus) {
 	}
 
 
-/*public void readContraintes(String nomFichier){
+public void readContraintes(String nomFichier){
 	
 	FileReader fR;
 	InputStream ips;
@@ -1280,7 +1280,7 @@ System.out.println(nomFichier);
 	}
 	System.out.println(nbConstraints);
 	
-}*/
+}
 
 
 public void lectureCNF(String nomFichier){

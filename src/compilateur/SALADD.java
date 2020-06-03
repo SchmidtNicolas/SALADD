@@ -238,8 +238,8 @@ public class SALADD {
 				xml.lecture(file_names.get(0));
 			else if(file_names.get(0).contains(".cnf"))
 				xml.lectureCNF(file_names.get(0));
-			//else if(file_names.get(0).contains(".cons"))
-			//	xml.readContraintes(file_names.get(0));
+			else if(file_names.get(0).contains(".cons"))
+				xml.readContraintes(file_names.get(0));
 			else
 				xml.lecture(file_names.get(0));
 
@@ -306,7 +306,12 @@ public class SALADD {
 				//traduction en valeur de 0 a n (au lieu de strings)
 					for(int j=0; j<contraintes.length; j++){
 						for(int k=1; k<contraintes[j].length; k++){
-							contraintes[j][k]=ord.getVariables().get(k-1).conv(contraintesS[j][k]);
+							// tag2020
+							if(contraintesS[j][k].startsWith("!"))
+								contraintes[j][k]=-ord.getVariables().get(k-1).conv(contraintesS[j][k].substring(1))-2;
+							else
+								contraintes[j][k]=ord.getVariables().get(k-1).conv(contraintesS[j][k]);
+						
 						}
 					}
 
