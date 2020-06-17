@@ -2,7 +2,7 @@ package compilateur.heuristique_variable;
 
 import java.util.ArrayList;
 
-import compilateur.Ordonnancement;
+import compilateur.ConstraintsNetwork;
 import compilateur.Var;
 
 
@@ -24,7 +24,7 @@ import compilateur.Var;
 
 public class HeuristiqueVariableOrdreChoisi implements HeuristiqueVariable{
 
-	public ArrayList<Var> reordoner(int[][] contraintes, ArrayList<Var> listeVariables, Ordonnancement ord)
+	public ArrayList<Var> reordoner(int[][] contraintes, ArrayList<Var> listeVariables, ConstraintsNetwork cn)
 	{
 		ArrayList<Var> liste=new ArrayList<Var>();
 		

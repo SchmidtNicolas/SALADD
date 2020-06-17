@@ -21,6 +21,7 @@ import java.util.ArrayList;
 public class Var {
 	public String name;
 	public int pos;
+	public int heuristicNewPosition;
 	
 	public int domain;
 	public ArrayList<String> valeurs;
@@ -31,6 +32,7 @@ public class Var {
 		name=n;
 		pos=i;
 		valeurs=new ArrayList<String>();
+		heuristicNewPosition=-1;
 	}
 		
 	

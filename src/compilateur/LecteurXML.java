@@ -48,18 +48,18 @@ public class LecteurXML {
 	public int nbDomains;
 	public Domain[] dom;
 	
-	//class Variable { public Domain domain; public String name;}
 	public int nbVariables;
-	public ArrayList<Var> var;
 	
 	public class Relation { public String name; public int arity; public int nbTuples; public Structure defaultCost; public boolean softConstraint; public boolean conflictsConstraint; public int[][] relation; public String[][] relationS; public Structure[] poid;}
 	public int nbRelations;
-	public Relation[] rel;
+	public ArrayList<Relation> rel;
 	
-	public class Constraint { public String name; public int arity; public String scope; public String reference; public int[] scopeID; public Relation relation;}
+	public class ConstraintXML { public String name; public int arity; public String scope; public String reference; public int[] scopeID; public Relation relation;}
 	public int nbConstraints;
 	//public int maximalCost;
-	public Constraint[] cons;
+	public ConstraintXML[] cons;
+	
+	public ConstraintsNetwork cn;
 	
 	public LecteurXML(){
 		nbDomains=0;
@@ -199,7 +199,7 @@ public class LecteurXML {
 				
 	}
 	
-	public void lecture(String nomFichier) {
+	public void lecture(String nomFichier, ConstraintsNetwork cn) {
 		
 		NodeList nList;
 		try {
@@ -254,7 +254,7 @@ public class LecteurXML {
 				}
 			}
 			
-			var=new ArrayList<Var>();
+			ArrayList<Var> var=new ArrayList<Var>();
 			//////variable//////
 			nList = doc.getElementsByTagName("variable");
 			for (int temp = 0; temp < nbVariables; temp++) {
@@ -262,7 +262,7 @@ public class LecteurXML {
 				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 					Element eElement = (Element) nNode;
 
-					Var v=new Var(eElement.getAttribute("name"), temp+1);			//+1??????
+					Var v=new Var(eElement.getAttribute("name"), temp+1);			
 					var.add(v);
 					
 					Domain d=this.getdomain(eElement.getAttribute("domain"));
@@ -273,6 +273,7 @@ public class LecteurXML {
 					
 				}
 			}
+			cn.setVar(var);
 			
 			//////Relations///////
 			nList = doc.getElementsByTagName("relations");
@@ -285,7 +286,7 @@ public class LecteurXML {
 				}
 			}
 			
-			rel=new Relation[nbRelations];
+			rel=new ArrayList<LecteurXML.Relation>(nbRelations);
 			//////relation//////
 			nList = doc.getElementsByTagName("relation");
 			for (int temp = 0; temp < nbRelations; temp++) {
@@ -294,23 +295,23 @@ public class LecteurXML {
 					Element eElement = (Element) nNode;
 
 
-					rel[temp]=new Relation();
+					rel.add(new Relation());
 					
-					rel[temp].name=eElement.getAttribute("name");
-					rel[temp].arity=Integer.parseInt(eElement.getAttribute("arity"));
-					rel[temp].nbTuples=Integer.parseInt(eElement.getAttribute("nbTuples"));
-					rel[temp].softConstraint=(eElement.getAttribute("semantics").compareTo("soft")==0);
-					rel[temp].conflictsConstraint=(eElement.getAttribute("semantics").compareTo("conflicts")==0);
-					if(rel[temp].softConstraint)
-						rel[temp].defaultCost= new Sp(Integer.parseInt(eElement.getAttribute("defaultCost")));
+					rel.get(temp).name=eElement.getAttribute("name");
+					rel.get(temp).arity=Integer.parseInt(eElement.getAttribute("arity"));
+					rel.get(temp).nbTuples=Integer.parseInt(eElement.getAttribute("nbTuples"));
+					rel.get(temp).softConstraint=(eElement.getAttribute("semantics").compareTo("soft")==0);
+					rel.get(temp).conflictsConstraint=(eElement.getAttribute("semantics").compareTo("conflicts")==0);
+					if(rel.get(temp).softConstraint)
+						rel.get(temp).defaultCost= new Sp(Integer.parseInt(eElement.getAttribute("defaultCost")));
 					
 					if(Integer.parseInt(eElement.getAttribute("nbTuples"))!=0)
 					{										//evite les erreurs lorsque nombre de tuples = 0
-						rel[temp].relation=new int[rel[temp].nbTuples][rel[temp].arity];
-						rel[temp].relationS=new String[rel[temp].nbTuples][rel[temp].arity];
-						rel[temp].poid=new Sp[rel[temp].nbTuples];
+						rel.get(temp).relation=new int[rel.get(temp).nbTuples][rel.get(temp).arity];
+						rel.get(temp).relationS=new String[rel.get(temp).nbTuples][rel.get(temp).arity];
+						rel.get(temp).poid=new Sp[rel.get(temp).nbTuples];
 						String r=nNode.getTextContent();
-						interpretationRelation(r, rel[temp]);
+						interpretationRelation(r, rel.get(temp));
 					}
 				}
 			}
@@ -327,7 +328,7 @@ public class LecteurXML {
 				}
 			}
 			
-			cons=new Constraint[nbConstraints];
+			cons=new ConstraintXML[nbConstraints];
 			//////Constraint//////
 			nList = doc.getElementsByTagName("constraint");
 			for (int temp = 0; temp < nbConstraints; temp++) {
@@ -335,66 +336,53 @@ public class LecteurXML {
 				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 					Element eElement = (Element) nNode;
 
-					cons[temp]=new Constraint();
+					Constraint c = new Constraint();
 					
-					cons[temp].name=eElement.getAttribute("name");
-					cons[temp].arity=Integer.parseInt(eElement.getAttribute("arity"));
-					cons[temp].scope=eElement.getAttribute("scope");
-					cons[temp].reference=eElement.getAttribute("reference");					
-				}
-			}
-		
-			
-	// traitement des variables impliqués dans les contraintes (scope -> scopeID[] avec ID : emplacement dans var)
-			
-			for(int cpt=0; cpt<cons.length; cpt++){		//on parcourt toutes les contraintes
-
-				cons[cpt].relation=null;
-				//obtenir l'emplacement de la relation
-				String string="", subString="";
-				string=cons[cpt].reference;
-				for(int i=0; i<string.length(); i++){
-					if(string.charAt(i)!=' ')
-						subString+=string.charAt(i);		//on recupere la referance (sans espace)
-				}
-				for (int j=0; j<rel.length; j++){
-					if(rel[j].name.compareTo(subString)==0){
-						cons[cpt].relation=rel[j];						// on trouve la relation, c'est la numero j
-						break;
-					}
-				}
-				if(cons[cpt].relation==null)
-					System.out.println("erreur de nom de relation!");
-				
-			
-				//obtenir la liste des variables impliques
-				string=cons[cpt].scope+" ";
-				subString="";
-				int k=0;
-				cons[cpt].scopeID=new int[cons[cpt].arity];
-
-				
-				for(int i=0; i<string.length(); i++){
-					if(string.charAt(i)!=' ')
-						subString+=string.charAt(i);
-					else{
-						if(subString.length()!=0){
-							for (int j=0; j<var.size(); j++){
-								if(var.get(j).name.compareTo(subString)==0){
-									cons[cpt].scopeID[k]=j;
-									k++;
-									subString="";
+					c.name=eElement.getAttribute("name");
+					c.arity=Integer.parseInt(eElement.getAttribute("arity"));
+					
+					//obtenir la liste des variables impliques
+					String scope = eElement.getAttribute("scope");
+					String subStrings[] = scope.split(" ");
+					for(int i=0; i<subStrings.length; i++){
+						if(subStrings[i].length()!=0){
+							for (int j=0; j<cn.nbVariables; j++){
+								if(cn.getVar(j).name.compareTo(subStrings[i])==0){
+									c.scopeID.add(j);
 									break;
 								}
 							}
 						}
 					}
+					
+					//obtenir relation
+					String ref= eElement.getAttribute("reference");	
+					Relation currentRel=null;
+					ref=ref.trim();
+					for (int i=0; i<rel.size(); i++){
+						if(rel.get(i).name.compareTo(ref)==0){
+							currentRel=rel.get(i);						// on trouve la relation, c'est la numero j
+							break;
+						}
+					}
+					c.nbTuples=currentRel.nbTuples;
+					for(int i=0; i<currentRel.nbTuples; i++) {
+						ArrayList<Integer> newTuple = new ArrayList<Integer>();
+						for(int j=0; j<currentRel.arity; j++) 
+							newTuple.add(cn.getVar(c.scopeID.get(j)).conv(currentRel.relationS[i][j]));
+						c.cons.add(newTuple);
+					}
+					c.defaultCost=currentRel.defaultCost; 
+					c.conflictsConstraint=currentRel.conflictsConstraint;
+					c.softConstraint=currentRel.softConstraint;
+					for(int i=0; i<currentRel.poid.length; i++) {
+						c.poid.add(currentRel.poid[i].copie());
+					}
+					
+					cn.addCons(c);				
 				}
 			}
-				
-				
-		
-		
+	
 		
 	  } catch (Exception e) {
 		e.printStackTrace();
@@ -402,13 +390,12 @@ public class LecteurXML {
 	}
 	
 	//lecture en metant les contraintes au bout
-public void lectureSuite(String nomFichier) {
+public void lectureSuite(String nomFichier, ConstraintsNetwork cn) {
 		
 		NodeList nList;
 		int nbRelations2=0;
 		int nbConstraints2=0;
-		Constraint[] cons2;
-		Relation[] rel2;
+		ArrayList<Relation> rel2;
 		
 		try {
 		File fXmlFile = new File("./"+nomFichier);
@@ -431,7 +418,7 @@ public void lectureSuite(String nomFichier) {
 				}
 			}
 			
-			rel2=new Relation[nbRelations2];
+			rel2=new ArrayList<LecteurXML.Relation>(nbRelations2);
 			//////relation//////
 			nList = doc.getElementsByTagName("relation");
 			for (int temp = 0; temp < nbRelations2; temp++) {
@@ -440,23 +427,23 @@ public void lectureSuite(String nomFichier) {
 					Element eElement = (Element) nNode;
 
 
-					rel2[temp]=new Relation();
+					rel2.add(new Relation());
 					
-					rel2[temp].name=eElement.getAttribute("name");
-					rel2[temp].arity=Integer.parseInt(eElement.getAttribute("arity"));
-					rel2[temp].nbTuples=Integer.parseInt(eElement.getAttribute("nbTuples"));
-					rel2[temp].softConstraint=(eElement.getAttribute("semantics").compareTo("soft")==0);
-					rel2[temp].conflictsConstraint=(eElement.getAttribute("semantics").compareTo("conflicts")==0);
-					if(rel2[temp].softConstraint)
-						rel2[temp].defaultCost= new Sp(Integer.parseInt(eElement.getAttribute("defaultCost")));
+					rel2.get(temp).name=eElement.getAttribute("name");
+					rel2.get(temp).arity=Integer.parseInt(eElement.getAttribute("arity"));
+					rel2.get(temp).nbTuples=Integer.parseInt(eElement.getAttribute("nbTuples"));
+					rel2.get(temp).softConstraint=(eElement.getAttribute("semantics").compareTo("soft")==0);
+					rel2.get(temp).conflictsConstraint=(eElement.getAttribute("semantics").compareTo("conflicts")==0);
+					if(rel2.get(temp).softConstraint)
+						rel2.get(temp).defaultCost= new Sp(Integer.parseInt(eElement.getAttribute("defaultCost")));
 					
 					if(Integer.parseInt(eElement.getAttribute("nbTuples"))!=0)
 					{										//evite les erreurs lorsque nombre de tuples = 0
-						rel2[temp].relation=new int[rel2[temp].nbTuples][rel2[temp].arity];
-						rel2[temp].relationS=new String[rel2[temp].nbTuples][rel2[temp].arity];
-						rel2[temp].poid=new Sp[rel2[temp].nbTuples];
+						rel2.get(temp).relation=new int[rel2.get(temp).nbTuples][rel2.get(temp).arity];
+						rel2.get(temp).relationS=new String[rel2.get(temp).nbTuples][rel2.get(temp).arity];
+						rel2.get(temp).poid=new Sp[rel2.get(temp).nbTuples];
 						String r=nNode.getTextContent();
-						interpretationRelation(r, rel2[temp]);
+						interpretationRelation(r, rel2.get(temp));
 					}
 				}
 			}
@@ -472,94 +459,60 @@ public void lectureSuite(String nomFichier) {
 					//maximalCost=Integer.parseInt(eElement.getAttribute("maximalCost"));
 				}
 			}
-			
-			cons2=new Constraint[nbConstraints2];
+
 			//////Constraint//////
 			nList = doc.getElementsByTagName("constraint");
-			for (int temp = 0; temp < nbConstraints2; temp++) {
+			for (int temp = 0; temp < nbConstraints; temp++) {
 				Node nNode = nList.item(temp);
 				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 					Element eElement = (Element) nNode;
 
-					cons2[temp]=new Constraint();
+					Constraint c = new Constraint();
 					
-					cons2[temp].name=eElement.getAttribute("name");
-					cons2[temp].arity=Integer.parseInt(eElement.getAttribute("arity"));
-					cons2[temp].scope=eElement.getAttribute("scope");
-					cons2[temp].reference=eElement.getAttribute("reference");					
-				}
-			}
-		
-			
-	// traitement des variables impliqués dans les contraintes (scope -> scopeID[] avec ID : emplacement dans var)
-			
-			for(int cpt=0; cpt<cons2.length; cpt++){		//on parcourt toutes les contraintes
-
-				cons2[cpt].relation=null;
-				//obtenir l'emplacement de la relation
-				String string="", subString="";
-				string=cons2[cpt].reference;
-				for(int i=0; i<string.length(); i++){
-					if(string.charAt(i)!=' ')
-						subString+=string.charAt(i);		//on recupere la referance (sans espace)
-				}
-				for (int j=0; j<rel2.length; j++){
-					if(rel2[j].name.compareTo(subString)==0){
-						cons2[cpt].relation=rel2[j];						// on trouve la relation, c'est la numero j
-						break;
-					}
-				}
-				if(cons2[cpt].relation==null)
-					System.out.println("erreur de nom de relation!");
-				
-			
-				//obtenir la liste des variables impliques
-				string=cons2[cpt].scope+" ";
-				subString="";
-				int k=0;
-				cons2[cpt].scopeID=new int[cons2[cpt].arity];
-
-				
-				for(int i=0; i<string.length(); i++){
-					if(string.charAt(i)!=' ')
-						subString+=string.charAt(i);
-					else{
-						if(subString.length()!=0){
-							for (int j=0; j<var.size(); j++){
-								if(var.get(j).name.compareTo(subString)==0){
-									cons2[cpt].scopeID[k]=j;
-									k++;
-									subString="";
+					c.name=eElement.getAttribute("name");
+					c.arity=Integer.parseInt(eElement.getAttribute("arity"));
+					
+					//obtenir la liste des variables impliques
+					String scope = eElement.getAttribute("scope");
+					String subStrings[] = scope.split(" ");
+					for(int i=0; i<subStrings.length; i++){
+						if(subStrings[i].length()!=0){
+							for (int j=0; j<cn.nbVariables; j++){
+								if(cn.getVar(j).name.compareTo(subStrings[i])==0){
+									c.scopeID.add(j);
 									break;
 								}
 							}
 						}
 					}
+					
+					//obtenir relation
+					String ref= eElement.getAttribute("reference");	
+					Relation currentRel=null;
+					ref=ref.trim();
+					for (int i=0; i<rel2.size(); i++){
+						if(rel2.get(i).name.compareTo(ref)==0){
+							currentRel=rel2.get(i);						// on trouve la relation, c'est la numero j
+							break;
+						}
+					}
+					c.nbTuples=currentRel.nbTuples;
+					for(int i=0; i<currentRel.nbTuples; i++) {
+						ArrayList<Integer> newTuple = new ArrayList<Integer>();
+						for(int j=0; j<currentRel.arity; j++) 
+							newTuple.add(cn.getVar(j).conv(currentRel.relation[i][j]));
+						c.cons.add(newTuple);
+					}
+					c.defaultCost=currentRel.defaultCost; 
+					c.conflictsConstraint=currentRel.conflictsConstraint;
+					c.softConstraint=currentRel.softConstraint;
+					for(int i=0; i<currentRel.poid.length; i++) {
+						c.poid.add(currentRel.poid[i].copie());
+					}
+					
+					cn.addCons(c);				
 				}
 			}
-				
-			//mix	
-			Relation[] reltemp=new Relation[nbRelations+nbRelations2] ;
-			Constraint[] constemp=new Constraint[nbConstraints+nbConstraints2];
-			
-			for(int i=0; i<nbConstraints; i++){
-				constemp[i]=cons[i];
-			}
-			for(int i=0; i<nbConstraints2; i++){
-				constemp[i+nbConstraints]=cons2[i];
-			}
-			for(int i=0; i<nbRelations; i++){
-				reltemp[i]=rel[i];
-			}
-			for(int i=0; i<nbRelations2; i++){
-				reltemp[i+nbRelations]=rel2[i];
-			}
-			cons=constemp;
-			rel=reltemp;
-			
-			nbConstraints+=nbConstraints2;
-			nbRelations+=nbRelations2;
-		
 		
 	  } catch (Exception e) {
 		e.printStackTrace();
@@ -571,7 +524,7 @@ public void lectureSuite(String nomFichier) {
 	
 
 //poid fort - for, given n, ..., given 2, given 1 -- poid faible 
-public void lectureBIFfaux(String nomFichier, boolean arg_plus) {
+public void lectureBIFfaux(String nomFichier, boolean arg_plus, ConstraintsNetwork cn) {
 		
 	bif=true;
 	
@@ -585,7 +538,7 @@ public void lectureBIFfaux(String nomFichier, boolean arg_plus) {
 	
 			
 			//////variable//////
-			var=new ArrayList<Var>();
+		ArrayList<Var> var=new ArrayList<Var>();
 			nList = doc.getElementsByTagName("VARIABLE");
 			nbVariables=nList.getLength();							//nombre de variables
 			
@@ -612,13 +565,14 @@ public void lectureBIFfaux(String nomFichier, boolean arg_plus) {
 					
 				}
 			}
+			cn.setVar(var);
 
 			//////Relations//////
 			nList = doc.getElementsByTagName("PROBABILITY");
 			nbRelations=nList.getLength();							//nombre de variables
 			nbConstraints=nList.getLength();
-			rel=new Relation[nbRelations];
-			cons=new Constraint[nbConstraints];		
+			rel=new ArrayList<LecteurXML.Relation>(nbRelations);
+			cons=new ConstraintXML[nbConstraints];		
 			//on parcourt les relations
 			for (int temp = 0; temp < nList.getLength(); temp++) {
 				Node nNode = nList.item(temp);
@@ -628,23 +582,23 @@ public void lectureBIFfaux(String nomFichier, boolean arg_plus) {
 					//dans une relation
 					
 					//init
-					rel[temp]=new Relation();
-					cons[temp]=new Constraint();
-					cons[temp].relation=rel[temp];
-					rel[temp].name="r"+temp;
+					rel.add(new Relation());
+					cons[temp]=new ConstraintXML();
+					cons[temp].relation=rel.get(temp);
+					rel.get(temp).name="r"+temp;
 					cons[temp].name="c"+temp;
 					cons[temp].reference="r"+temp;
 					if(arg_plus)
-						rel[temp].defaultCost=new Sp(0);				//pas de cout par defaut (ici le 1 c'est le neutre... oui mais on l'additionne apres, alors 0)
+						rel.get(temp).defaultCost=new Sp(0);				//pas de cout par defaut (ici le 1 c'est le neutre... oui mais on l'additionne apres, alors 0)
 					else
-						rel[temp].defaultCost=new St(1);
-					rel[temp].softConstraint=true;			//on a que du soft !
-					rel[temp].conflictsConstraint=false;	
+						rel.get(temp).defaultCost=new St(1);
+					rel.get(temp).softConstraint=true;			//on a que du soft !
+					rel.get(temp).conflictsConstraint=false;	
 						
 //partie qui change					
 					//on parcour les givens
 					NodeList nList2 = eElement.getElementsByTagName("GIVEN");
-					rel[temp].arity=nList2.getLength()+1;			//l'arite c'est le nombre de given + le for
+					rel.get(temp).arity=nList2.getLength()+1;			//l'arite c'est le nombre de given + le for
 					cons[temp].arity=nList2.getLength()+1;
 					
 					String stringScope="";
@@ -681,20 +635,20 @@ public void lectureBIFfaux(String nomFichier, boolean arg_plus) {
 					//on va faire notre table, mais pour ca on doit connaitre le domaine de chacun
 					int[] scopeDom=new int[cons[temp].arity];
 					int[] curr=new int[cons[temp].arity+1];		//+1 sinon on deborde plus bas
-					rel[temp].nbTuples=1;					//init (element neutre)
+					rel.get(temp).nbTuples=1;					//init (element neutre)
 					for(int i=0; i<cons[temp].arity; i++){
 						scopeDom[i]=var.get(cons[temp].scopeID[i]).domain;
 						curr[i]=0;
-						rel[temp].nbTuples*=scopeDom[i];			//on multipli pour avoir le nombre de scope, vu que tout est defini
+						rel.get(temp).nbTuples*=scopeDom[i];			//on multipli pour avoir le nombre de scope, vu que tout est defini
 					}
 					
-					rel[temp].relation=new int[rel[temp].nbTuples][rel[temp].arity];
-					for(int i=0; i<rel[temp].nbTuples; i++){
-						for(int j=0; j<rel[temp].arity; j++){
-							rel[temp].relation[i][j]=curr[j];
+					rel.get(temp).relation=new int[rel.get(temp).nbTuples][rel.get(temp).arity];
+					for(int i=0; i<rel.get(temp).nbTuples; i++){
+						for(int j=0; j<rel.get(temp).arity; j++){
+							rel.get(temp).relation[i][j]=curr[j];
 						}
 						curr[0]++;					//on incrémente
-						for(int j=0; j<rel[temp].arity; j++){		//on verifie si on a pas dépassé
+						for(int j=0; j<rel.get(temp).arity; j++){		//on verifie si on a pas dépassé
 							if(curr[j]>=scopeDom[j]){				//la on a dépassé
 								curr[j]=0;
 								curr[j+1]++;
@@ -714,9 +668,9 @@ public void lectureBIFfaux(String nomFichier, boolean arg_plus) {
 					subString="";
 					k=0;
 					if(arg_plus)
-						rel[temp].poid=new Sp[rel[temp].nbTuples];
+						rel.get(temp).poid=new Sp[rel.get(temp).nbTuples];
 					else
-						rel[temp].poid=new St[rel[temp].nbTuples];
+						rel.get(temp).poid=new St[rel.get(temp).nbTuples];
 
 					for(int i=0; i<stringTable.length(); i++){
 						if(stringTable.charAt(i)!=' ')
@@ -724,9 +678,9 @@ public void lectureBIFfaux(String nomFichier, boolean arg_plus) {
 						else{
 							if(subString.length()!=0){
 								if(arg_plus)
-									rel[temp].poid[k]=new Sp((int) Math.round(-1000*Math.log(Double.parseDouble(subString))));				//-404 : on a besoin d'une fraction (que dans le mult)
+									rel.get(temp).poid[k]=new Sp((int) Math.round(-1000*Math.log(Double.parseDouble(subString))));				//-404 : on a besoin d'une fraction (que dans le mult)
 								else
-									rel[temp].poid[k]=new St(Double.parseDouble(subString));				//-404 : on a besoin d'une fraction (que dans le mult)
+									rel.get(temp).poid[k]=new St(Double.parseDouble(subString));				//-404 : on a besoin d'une fraction (que dans le mult)
 								k++;
 								subString="";
 							}
@@ -823,7 +777,7 @@ public void lectureBIFpifi(String nomFichier, boolean arg_plus) {
 	
 			
 			//////variable//////
-			var=new ArrayList<Var>();
+			ArrayList<Var> var=new ArrayList<Var>();
 			nList = doc.getElementsByTagName("VARIABLE");
 			nbVariables=nList.getLength();							//nombre de variables
 			
@@ -855,8 +809,8 @@ public void lectureBIFpifi(String nomFichier, boolean arg_plus) {
 			nList = doc.getElementsByTagName("PROBABILITY");
 			nbRelations=nList.getLength();							//nombre de variables
 			nbConstraints=nList.getLength();
-			rel=new Relation[nbRelations];
-			cons=new Constraint[nbConstraints];		
+			rel=new ArrayList<LecteurXML.Relation>(nbRelations);
+			cons=new ConstraintXML[nbConstraints];		
 			//on parcourt les relations
 			for (int temp = 0; temp < nList.getLength(); temp++) {
 				Node nNode = nList.item(temp);
@@ -866,18 +820,18 @@ public void lectureBIFpifi(String nomFichier, boolean arg_plus) {
 					//dans une relation
 					
 					//init
-					rel[temp]=new Relation();
-					cons[temp]=new Constraint();
-					cons[temp].relation=rel[temp];
-					rel[temp].name="r"+temp;
+					rel.add(new Relation());
+					cons[temp]=new ConstraintXML();
+					cons[temp].relation=rel.get(temp);
+					rel.get(temp).name="r"+temp;
 					cons[temp].name="c"+temp;
 					cons[temp].reference="r"+temp;
 					if(arg_plus)
-						rel[temp].defaultCost=new Sp(0);				//pas de cout par defaut (ici le 1 c'est le neutre... oui mais on l'additionne apres, alors 0)
+						rel.get(temp).defaultCost=new Sp(0);				//pas de cout par defaut (ici le 1 c'est le neutre... oui mais on l'additionne apres, alors 0)
 					else
-						rel[temp].defaultCost=new St(1);
-					rel[temp].softConstraint=true;			//on a que du soft !
-					rel[temp].conflictsConstraint=false;	
+						rel.get(temp).defaultCost=new St(1);
+					rel.get(temp).softConstraint=true;			//on a que du soft !
+					rel.get(temp).conflictsConstraint=false;	
 						
 					//on parcour les givens
 //partie qui change					
@@ -886,7 +840,7 @@ public void lectureBIFpifi(String nomFichier, boolean arg_plus) {
 					    stringScope += nList2.item(0).getTextContent() + " ";				//le for
 					    
 					nList2 = eElement.getElementsByTagName("GIVEN");
-					rel[temp].arity=nList2.getLength()+1;			//l'arite c'est le nombre de given + le for
+					rel.get(temp).arity=nList2.getLength()+1;			//l'arite c'est le nombre de given + le for
 					cons[temp].arity=nList2.getLength()+1;
 					
 				    for (int i = 0; i < nList2.getLength(); ++i)				//on met bout a bout les givens...
@@ -921,20 +875,20 @@ public void lectureBIFpifi(String nomFichier, boolean arg_plus) {
 					//on va faire notre table, mais pour ca on doit connaitre le domaine de chacun
 					int[] scopeDom=new int[cons[temp].arity];
 					int[] curr=new int[cons[temp].arity+1];		//+1 sinon on deborde plus bas
-					rel[temp].nbTuples=1;					//init (element neutre)
+					rel.get(temp).nbTuples=1;					//init (element neutre)
 					for(int i=0; i<cons[temp].arity; i++){
 						scopeDom[i]=var.get(cons[temp].scopeID[i]).domain;
 						curr[i]=0;
-						rel[temp].nbTuples*=scopeDom[i];			//on multipli pour avoir le nombre de scope, vu que tout est defini
+						rel.get(temp).nbTuples*=scopeDom[i];			//on multipli pour avoir le nombre de scope, vu que tout est defini
 					}
 					
-					rel[temp].relation=new int[rel[temp].nbTuples][rel[temp].arity];
-					for(int i=0; i<rel[temp].nbTuples; i++){
-						for(int j=0; j<rel[temp].arity; j++){
-							rel[temp].relation[i][j]=curr[j];
+					rel.get(temp).relation=new int[rel.get(temp).nbTuples][rel.get(temp).arity];
+					for(int i=0; i<rel.get(temp).nbTuples; i++){
+						for(int j=0; j<rel.get(temp).arity; j++){
+							rel.get(temp).relation[i][j]=curr[j];
 						}
 						curr[0]++;					//on incrémente
-						for(int j=0; j<rel[temp].arity; j++){		//on verifie si on a pas dépassé
+						for(int j=0; j<rel.get(temp).arity; j++){		//on verifie si on a pas dépassé
 							if(curr[j]>=scopeDom[j]){				//la on a dépassé
 								curr[j]=0;
 								curr[j+1]++;
@@ -954,9 +908,9 @@ public void lectureBIFpifi(String nomFichier, boolean arg_plus) {
 					subString="";
 					k=0;
 					if(arg_plus)
-						rel[temp].poid=new Sp[rel[temp].nbTuples];
+						rel.get(temp).poid=new Sp[rel.get(temp).nbTuples];
 					else
-						rel[temp].poid=new St[rel[temp].nbTuples];
+						rel.get(temp).poid=new St[rel.get(temp).nbTuples];
 
 					for(int i=0; i<stringTable.length(); i++){
 						if(stringTable.charAt(i)!=' ')
@@ -964,9 +918,9 @@ public void lectureBIFpifi(String nomFichier, boolean arg_plus) {
 						else{
 							if(subString.length()!=0){
 								if(arg_plus)
-									rel[temp].poid[k]=new Sp((int) Math.round(-1000*Math.log(Double.parseDouble(subString))));				//-404 : on a besoin d'une fraction (que dans le mult)
+									rel.get(temp).poid[k]=new Sp((int) Math.round(-1000*Math.log(Double.parseDouble(subString))));				//-404 : on a besoin d'une fraction (que dans le mult)
 								else
-									rel[temp].poid[k]=new St(Double.parseDouble(subString));				//-404 : on a besoin d'une fraction (que dans le mult)
+									rel.get(temp).poid[k]=new St(Double.parseDouble(subString));				//-404 : on a besoin d'une fraction (que dans le mult)
 								k++;
 								subString="";
 							}
@@ -999,7 +953,7 @@ public void lectureBIF(String nomFichier, boolean arg_plus) {
 	
 			
 			//////variable//////
-			var=new ArrayList<Var>();
+			ArrayList<Var> var=new ArrayList<Var>();
 			nList = doc.getElementsByTagName("VARIABLE");
 			nbVariables=nList.getLength();							//nombre de variables
 			
@@ -1031,8 +985,8 @@ public void lectureBIF(String nomFichier, boolean arg_plus) {
 			nList = doc.getElementsByTagName("PROBABILITY");
 			nbRelations=nList.getLength();							//nombre de variables
 			nbConstraints=nList.getLength();
-			rel=new Relation[nbRelations];
-			cons=new Constraint[nbConstraints];		
+			rel=new ArrayList<LecteurXML.Relation>(nbRelations);
+			cons=new ConstraintXML[nbConstraints];		
 			//on parcourt les relations
 			for (int temp = 0; temp < nList.getLength(); temp++) {
 				Node nNode = nList.item(temp);
@@ -1042,23 +996,23 @@ public void lectureBIF(String nomFichier, boolean arg_plus) {
 					//dans une relation
 					
 					//init
-					rel[temp]=new Relation();
-					cons[temp]=new Constraint();
-					cons[temp].relation=rel[temp];
-					rel[temp].name="r"+temp;
+					rel.add(new Relation());
+					cons[temp]=new ConstraintXML();
+					cons[temp].relation=rel.get(temp);
+					rel.get(temp).name="r"+temp;
 					cons[temp].name="c"+temp;
 					cons[temp].reference="r"+temp;
 					if(arg_plus)
-						rel[temp].defaultCost=new Sp(0);				//pas de cout par defaut (ici le 1 c'est le neutre... oui mais on l'additionne apres, alors 0)
+						rel.get(temp).defaultCost=new Sp(0);				//pas de cout par defaut (ici le 1 c'est le neutre... oui mais on l'additionne apres, alors 0)
 					else
-						rel[temp].defaultCost=new St(1);
-					rel[temp].softConstraint=true;			//on a que du soft !
-					rel[temp].conflictsConstraint=false;	
+						rel.get(temp).defaultCost=new St(1);
+					rel.get(temp).softConstraint=true;			//on a que du soft !
+					rel.get(temp).conflictsConstraint=false;	
 						
 //partie qui change					
 					//on parcour les givens
 					NodeList nList2 = eElement.getElementsByTagName("GIVEN");
-					rel[temp].arity=nList2.getLength()+1;			//l'arite c'est le nombre de given + le for
+					rel.get(temp).arity=nList2.getLength()+1;			//l'arite c'est le nombre de given + le for
 					cons[temp].arity=nList2.getLength()+1;
 					
 					String stringScope="";
@@ -1097,20 +1051,20 @@ public void lectureBIF(String nomFichier, boolean arg_plus) {
 					//on va faire notre table, mais pour ca on doit connaitre le domaine de chacun
 					int[] scopeDom=new int[cons[temp].arity];
 					int[] curr=new int[cons[temp].arity+1];		//+1 sinon on deborde plus bas
-					rel[temp].nbTuples=1;					//init (element neutre)
+					rel.get(temp).nbTuples=1;					//init (element neutre)
 					for(int i=0; i<cons[temp].arity; i++){
 						scopeDom[i]=var.get(cons[temp].scopeID[i]).domain;
 						curr[i]=0;
-						rel[temp].nbTuples*=scopeDom[i];			//on multipli pour avoir le nombre de scope, vu que tout est defini
+						rel.get(temp).nbTuples*=scopeDom[i];			//on multipli pour avoir le nombre de scope, vu que tout est defini
 					}
 					
-					rel[temp].relation=new int[rel[temp].nbTuples][rel[temp].arity];
-					for(int i=0; i<rel[temp].nbTuples; i++){
-						for(int j=0; j<rel[temp].arity; j++){
-							rel[temp].relation[i][j]=curr[j];
+					rel.get(temp).relation=new int[rel.get(temp).nbTuples][rel.get(temp).arity];
+					for(int i=0; i<rel.get(temp).nbTuples; i++){
+						for(int j=0; j<rel.get(temp).arity; j++){
+							rel.get(temp).relation[i][j]=curr[j];
 						}
 						curr[0]++;					//on incrémente
-						for(int j=0; j<rel[temp].arity; j++){		//on verifie si on a pas dépassé
+						for(int j=0; j<rel.get(temp).arity; j++){		//on verifie si on a pas dépassé
 							if(curr[j]>=scopeDom[j]){				//la on a dépassé
 								curr[j]=0;
 								curr[j+1]++;
@@ -1130,9 +1084,9 @@ public void lectureBIF(String nomFichier, boolean arg_plus) {
 					subString="";
 					k=0;
 					if(arg_plus)
-						rel[temp].poid=new Sp[rel[temp].nbTuples];
+						rel.get(temp).poid=new Sp[rel.get(temp).nbTuples];
 					else
-						rel[temp].poid=new St[rel[temp].nbTuples];
+						rel.get(temp).poid=new St[rel.get(temp).nbTuples];
 
 					for(int i=0; i<stringTable.length(); i++){
 						if(stringTable.charAt(i)!=' ')
@@ -1140,9 +1094,9 @@ public void lectureBIF(String nomFichier, boolean arg_plus) {
 						else{
 							if(subString.length()!=0){
 								if(arg_plus)
-									rel[temp].poid[k]=new Sp((int) Math.round(-1000*Math.log(Double.parseDouble(subString))));				//-404 : on a besoin d'une fraction (que dans le mult)
+									rel.get(temp).poid[k]=new Sp((int) Math.round(-1000*Math.log(Double.parseDouble(subString))));				//-404 : on a besoin d'une fraction (que dans le mult)
 								else
-									rel[temp].poid[k]=new St(Double.parseDouble(subString));				//-404 : on a besoin d'une fraction (que dans le mult)
+									rel.get(temp).poid[k]=new St(Double.parseDouble(subString));				//-404 : on a besoin d'une fraction (que dans le mult)
 								k++;
 								subString="";
 							}
@@ -1157,7 +1111,7 @@ public void lectureBIF(String nomFichier, boolean arg_plus) {
 	}
 
 
-/*public void readContraintes(String nomFichier){
+public void lectureCNF(String nomFichier, ConstraintsNetwork cn){
 	
 	FileReader fR;
 	InputStream ips;
@@ -1166,134 +1120,6 @@ public void lectureBIF(String nomFichier, boolean arg_plus) {
 
 	String ligne;
 	String[] args;
-
-	var=new ArrayList<Var>();
-	int idCons=0;
-	
-	if(!nomFichier.contains(".cons"))
-		nomFichier+=".cons";
-System.out.println(nomFichier);
-	try{
-		fR = new FileReader(nomFichier);
-	}catch (Exception e) {
-		System.out.println("err lecture fichier cons");
-	}
-	
-
-	try{
-		ips=new FileInputStream(nomFichier); 
-		ipsr=new InputStreamReader(ips);
-		br=new BufferedReader(ipsr);
-	}catch (Exception e){
-			System.out.println(e.toString());
-	}
-
-	try {
-		while((ligne=br.readLine())!=null){
-			
-			if(ligne.length()>0 && ligne.charAt(0)=='#')
-				break;						//comment
-			
-			if(ligne.length()>0 && ligne.charAt(0)=='p'){
-				args=ligne.split(" ");		//begining
-				if(args[1].compareToIgnoreCase("contraintes")!=0)
-					break;
-				
-				nbVariables = Integer.parseInt(args[2]);
-				nbConstraints = Integer.parseInt(args[3]);
-				
-				rel=new Relation[nbConstraints];
-				cons=new Constraint[nbConstraints];
-			}
-			
-			if(ligne.length()>0 && ligne.charAt(0)=='v') {
-				args=ligne.split(" ");		//begining
-				Var newvar=new Var(args[1], var.size()+1);
-				newvar.domain=Integer.parseInt(args[2]);
-				if(args.length>3){
-					ArrayList<String> dom=new ArrayList<String>();
-					for(int i=0; i<newvar.domain; i++)
-						dom.add(args[i+3]);
-					newvar.ajout(dom);
-				}
-				else {
-					newvar.setDefaultValues();
-				}
-				var.add(newvar);
-			}
-			
-			if(ligne.length()>0 && ligne.charAt(0)=='c') {
-				args=ligne.split(" ");		//begining
-				cons[idCons] = new Constraint();
-				rel[idCons] = new Relation();
-				cons[idCons].arity=Integer.parseInt(args[2]);
-				cons[idCons].name="c"+idCons;
-				cons[idCons].relation=rel[idCons];
-				cons[idCons].scopeID=new int[cons[idCons].arity];
-				cons[idCons].scope="";
-
-				rel[idCons].arity=cons[idCons].arity;
-				rel[idCons].conflictsConstraint=(args[1].compareTo("conflict")==0);
-				rel[idCons].softConstraint=false;
-				rel[idCons].defaultCost=new Sp(0);
-				rel[idCons].nbTuples=Integer.parseInt(args[3]);
-				rel[idCons].poid=new Sp[rel[idCons].nbTuples];
-				rel[idCons].relation=new int[rel[idCons].nbTuples][rel[idCons].arity];
-				rel[idCons].relationS=new String[rel[idCons].nbTuples][rel[idCons].arity];
-
-				//scope
-				ligne=br.readLine();
-				if(ligne != null){
-					args=ligne.split(" ");
-					for(int i=0; i<cons[idCons].arity; i++) {
-						cons[idCons].scopeID[i]=getVar(args[i]).pos;
-						cons[idCons].scope+=args[i]+" ";
-					}
-				}
-				
-				for(int i=0; i<rel[idCons].nbTuples; i++){
-					ligne=br.readLine();
-					rel[idCons].poid[i]=new Sp(0);
-					if(ligne != null){
-						args=ligne.split(" ");
-						for(int j=0; j<rel[idCons].arity; j++) {
-							rel[idCons].relationS[i][j]=args[j];
-							if(args[j].startsWith("!"))					//tag2020
-								rel[idCons].relation[i][j]=-1-Integer.parseInt(args[j].substring(1));
-							else
-								rel[idCons].relation[i][j]=Integer.parseInt(args[j]);
-						}
-					}
-				}
-				idCons++;
-
-				
-			}
-				
-		}
-	} catch (NumberFormatException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-	System.out.println(nbConstraints);
-	
-}*/
-
-
-public void lectureCNF(String nomFichier){
-	
-	FileReader fR;
-	InputStream ips;
-	InputStreamReader ipsr=null;
-	BufferedReader br=null;
-
-	String ligne;
-	String[] args;
-
-	var=new ArrayList<Var>();
 
 	if(!nomFichier.contains(".cnf"))
 		nomFichier+=".cnf";
@@ -1328,14 +1154,10 @@ public void lectureCNF(String nomFichier){
 				if(args[1].compareToIgnoreCase("cnf")!=0)
 					break;
 				
-				nbVariables = Integer.parseInt(args[2]);
 				nbConstraintsfinals = Integer.parseInt(args[3]);
-				nbConstraints = 0;
+								
+				cn.setVar(addAllVariablesAsBoolean(nbVariables));
 				
-				rel=new Relation[nbConstraintsfinals];
-				cons=new Constraint[nbConstraintsfinals];
-				
-				addAllVariablesAsBoolean(nbVariables);
 				asStarted=true;
 			}
 			else if(asStarted){
@@ -1368,56 +1190,37 @@ public void lectureCNF(String nomFichier){
 }
 
 
-	public void addAllVariablesAsBoolean(int nbVar) {
-		var=new ArrayList<Var>();
+	public ArrayList<Var> addAllVariablesAsBoolean(int nbVar) {
+		ArrayList<Var> var=new ArrayList<Var>();
 		
 		for(int i=1; i<=nbVar; i++) {
 			Var v=new Var("v"+String.valueOf(i), i);
 			v.setBoolean();
 			var.add(v);
 		}
+		return var;
 	}
 	
 	public void addContraintCNF(ArrayList<Integer> contraiteBrute){
 
 		int id=nbConstraints;
 		
-		rel[id]=new Relation();
-		rel[id].name="r"+String.valueOf(id);
-		rel[id].arity=contraiteBrute.size();
-		rel[id].nbTuples=1;
-		rel[id].defaultCost=new Sp(0);
-		rel[id].softConstraint = false;
-		rel[id].conflictsConstraint = true;
+		Constraint c=new Constraint("c"+id, contraiteBrute.size(), 1);
 		
-		rel[id].relation=new int[rel[id].nbTuples][rel[id].arity];
-		rel[id].relationS=new String[rel[id].nbTuples][rel[id].arity];
-		rel[id].poid=new Sp[rel[id].nbTuples];
-		
-		for(int i=0; i<rel[id].arity; i++){
-			if(contraiteBrute.get(i)>0) {
-				rel[id].relationS[0][i]="1";
-				rel[id].relation[0][i]=1;
-			}
-			else {
-				rel[id].relationS[0][i]="0";
-				rel[id].relation[0][i]=0;
-			}
+		c.softConstraint = false;
+		c.conflictsConstraint = true;
+		c.defaultCost=new Sp(0);
+		ArrayList<Integer> tuple=new ArrayList<Integer>();
+		for(int i=0; i<c.arity; i++){
+			if(contraiteBrute.get(i)>0)
+				tuple.add(1);
+			else
+				tuple.add(0);
 		}
-		rel[id].poid[0]=new Sp(0);
-
+		c.poid.add(new Sp(0));
 		
-		cons[id]=new Constraint();
-		cons[id].name="c"+String.valueOf(id);
-		cons[id].arity=contraiteBrute.size();
-		cons[id].reference="r"+String.valueOf(id);	
-		cons[id].relation=rel[id];
-		cons[id].scope="";
-		cons[id].scopeID=new int[cons[id].arity];
-		
-		for(int i=0; i<rel[id].arity; i++){
-			cons[id].scope+="v"+Math.abs(contraiteBrute.get(i))+" ";
-			cons[id].scopeID[i]=Math.abs(contraiteBrute.get(i));
+		for(int i=0; i<c.arity; i++){
+			c.scopeID.add(Math.abs(contraiteBrute.get(i)));
 		}
 		
 		nbConstraints++;
@@ -1425,313 +1228,11 @@ public void lectureCNF(String nomFichier){
 
 
 
-	public void actualiseVariables(){
-		// traitement des variables impliqués dans les contraintes (scope -> scopeID[] avec ID : emplacement dans var)
-		for(int cpt=0; cpt<cons.length; cpt++){		//on parcourt toutes les contraintes
-			//obtenir la liste des variables impliques
-			String string=cons[cpt].scope+" ";
-			String subString="";
-			int k=0;
-			cons[cpt].scopeID=new int[cons[cpt].arity];
-
-			
-			for(int i=0; i<string.length(); i++){
-				if(string.charAt(i)!=' ')
-					subString+=string.charAt(i);
-				else{
-					if(subString.length()!=0){
-						for (int j=0; j<var.size(); j++){
-							if(var.get(j).name.compareTo(subString)==0){
-								cons[cpt].scopeID[k]=j;
-								k++;
-								subString="";
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
 	
-	/*public void variablesUtiles(){
-		ArrayList<Var> liste=new ArrayList<Var>();
-		for(int i=0; i<var.size(); i++){
-			if(isVariableUtile(var.get(i))){
-				liste.add(var.get(i));
-			}
-		}
-		var.clear();
-		nbVariables=liste.size();
-		for(int i=0; i<liste.size(); i++){
-			var.add(liste.get(i));
-			liste.get(i).pos=i+1;
-		}
-	}*/
-	
-	public ArrayList<Var> getVariables() {
-		return var;
-	}
-	
-	public int[] getDomains() {
-		int[] tabDomains=new int[nbVariables];
-		for(int i=0; i<nbVariables; i++)
-			tabDomains[i]=var.get(i).domain;
-		
-		return tabDomains;
-	}
-	
-	public int getDomain(int i) {
-		return var.get(i).domain;
-	}
-
-	public int getNbVariables() {
-		return nbVariables;
-	}
-
-	public int getNbConstraints() {
-		return nbConstraints;
-	}
-
-	//forme : [poid, v0=-1, v1=3, v2=2; v3=-1][poid, v0=-1, v1=4, v2=3; v3=-1] => (1,2) poid:3 2|4 3
-	public Structure getDefaultCost(int num){	
-		return cons[num].relation.defaultCost;
-	}
-	
-	public boolean getSoftConstraint(int num){
-		return cons[num].relation.softConstraint;
-	}
-	public boolean getConflictsConstraint(int num){
-		return cons[num].relation.conflictsConstraint;
-	}
-	
-	public int[][] getConstraint(int num) {
-		if(cons[num]==null){
-			//System.out.println("sautee");
-			return null;
-		}
-		
-		//init
-		//on commence les variable a 1 pour correspondre avec la position des variables
-		int[][] contrainteComplette=new int[cons[num].relation.nbTuples][nbVariables+1];
-		for(int i=1; i<nbVariables+1; i++)
-			for(int j=0; j<cons[num].relation.nbTuples; j++)
-				contrainteComplette[j][i]=-1;
-		
-		//suite
-		for(int i=0; i<cons[num].relation.nbTuples; i++)
-			for(int j=0; j<cons[num].scopeID.length; j++){
-				contrainteComplette[i][cons[num].scopeID[j]+1]=cons[num].relation.relation[i][j];  //variables commencent a 0(xml), et a 1(ut)
-			}
-		return contrainteComplette;
-	}
-	
-	public String[][] getConstraintS(int num) {
-		if(cons[num]==null){
-			//System.out.println("sautee");
-			return null;
-		}
-		
-		//init
-		//on commence les variable a 1 pour correspondre avec la position des variables
-		String[][] contrainteComplette=new String[cons[num].relation.nbTuples][nbVariables+1];
-		for(int i=1; i<nbVariables+1; i++)
-			for(int j=0; j<cons[num].relation.nbTuples; j++)
-				contrainteComplette[j][i]="";
-		
-		//suite
-		for(int i=0; i<cons[num].relation.nbTuples; i++)
-			for(int j=0; j<cons[num].scopeID.length; j++){
-				if(cons[num].relation.relationS!=null){
-					contrainteComplette[i][cons[num].scopeID[j]+1]=cons[num].relation.relationS[i][j];  //variables commencent a 0(xml), et a 1(ut)
-				}else{
-					contrainteComplette[i][cons[num].scopeID[j]+1]=var.get(cons[num].scopeID[j]).valeurs.get(cons[num].relation.relation[i][j]);
-//					contrainteComplette[i][cons[num].scopeID[j]+1]=String.valueOf(cons[num].relation.relation[i][j]);  //variables commencent a 0(xml), et a 1(ut)
-				}
-			}
-		return contrainteComplette;
-	}
-	
-	public Structure[] getPoid(int num) {
-		Structure[] s=new Structure[cons[num].relation.nbTuples];
-		for(int i=0; i<cons[num].relation.nbTuples; i++){
-			s[i]=cons[num].relation.poid[i];
-		}
-		return s;
-
-	}
 
 	
-	public void compactConstraint() {
-		boolean egal=true;
-		
-		for(int i=0; i<cons.length; i++){
-			if(cons[i]!=null){
-				for(int j=i+1; j<cons.length; j++){
-					if(cons[j]!=null){
-						if(cons[i].relation.defaultCost!=null){
-							if(cons[i].arity==cons[j].arity && 
-							   cons[i].relation.defaultCost.equals(cons[j].relation.defaultCost) && 
-							   cons[i].relation.softConstraint==cons[j].relation.softConstraint &&
-							   cons[i].relation.conflictsConstraint==cons[j].relation.conflictsConstraint){
-								for(int k=0; k<cons[i].arity; k++){
-									if(cons[i].scopeID[k]!=cons[j].scopeID[k]){
-										egal=false;
-										break;
-									}
-								}
-								if(egal){
-									fusionConstraintS(cons[i], cons[j]);		//on garde i et on supprime j
-									cons[j]=null;
-								}else{
-									egal=true;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	//pinceMi et pinceMoi sont deux contraintes de meme scope sur un bateau, pinceMi est supprimer, ques qu'il reste? 
-	public void fusionConstraint(Constraint pinceMoi, Constraint pinceMi) {
-		Relation newRel=new Relation();
-		newRel.name=""+pinceMoi.relation.name+"_"+pinceMi.relation.name;
-		newRel.arity=pinceMoi.relation.arity;
-		newRel.nbTuples=pinceMoi.relation.nbTuples+pinceMi.relation.nbTuples;
-		newRel.defaultCost=pinceMoi.relation.defaultCost;
-		newRel.softConstraint=pinceMoi.relation.softConstraint;
-		newRel.conflictsConstraint=pinceMoi.relation.conflictsConstraint;
-
-		
-		newRel.relation=new int[newRel.nbTuples][newRel.arity] ;
-		newRel.poid=new Structure[newRel.nbTuples];
-		for(int i=0; i<pinceMoi.relation.nbTuples; i++){
-			newRel.poid[i]=pinceMoi.relation.poid[i];
-			for(int j=0; j<newRel.arity; j++){
-				newRel.relation[i][j]=pinceMoi.relation.relation[i][j];
-			}
-		}
-		for(int i=pinceMoi.relation.nbTuples; i<newRel.nbTuples; i++){
-			newRel.poid[i]=pinceMi.relation.poid[i-pinceMoi.relation.nbTuples];
-			for(int j=0; j<newRel.arity; j++){
-				newRel.relation[i][j]=pinceMi.relation.relation[i-pinceMoi.relation.nbTuples][j];
-			}
-		}
-		
-		pinceMoi.relation=newRel;
-	}
 	
-	//pinceMi et pinceMoi sont deux contraintes de meme scope sur un bateau, pinceMi est supprimer, ques qu'il reste? 
-	public void fusionConstraintS(Constraint pinceMoi, Constraint pinceMi) {
-		Relation newRel=new Relation();
-		newRel.name=""+pinceMoi.relation.name+"_"+pinceMi.relation.name;
-		newRel.arity=pinceMoi.relation.arity;
-		newRel.nbTuples=pinceMoi.relation.nbTuples+pinceMi.relation.nbTuples;
-		newRel.defaultCost=pinceMoi.relation.defaultCost;
-		newRel.softConstraint=pinceMoi.relation.softConstraint;
-		newRel.conflictsConstraint=pinceMoi.relation.conflictsConstraint;
-		
-		newRel.relation=new int[newRel.nbTuples][newRel.arity] ;
-		newRel.relationS=new String[newRel.nbTuples][newRel.arity] ;
-		newRel.poid=new Structure[newRel.nbTuples];
-		for(int i=0; i<pinceMoi.relation.nbTuples; i++){
-			newRel.poid[i]=pinceMoi.relation.poid[i];
-			for(int j=0; j<newRel.arity; j++){
-				newRel.relationS[i][j]=pinceMoi.relation.relationS[i][j];
-			}
-		}
-		for(int i=pinceMoi.relation.nbTuples; i<newRel.nbTuples; i++){
-			newRel.poid[i]=pinceMi.relation.poid[i-pinceMoi.relation.nbTuples];
-			for(int j=0; j<newRel.arity; j++){
-				newRel.relationS[i][j]=pinceMi.relation.relationS[i-pinceMoi.relation.nbTuples][j];
-			}
-		}
-		
-		pinceMoi.relation=newRel;
-	}
-	
-	//renvoie une table comptenant toutes les variables impliques dans chacunes des variables
-	//table[i][j] -> i : permet de changer de contrainte; j -> permet de parcourir les variables dans la contrainte
-	// /!\ taille des lignes variables
-	
-	//variables avant changement
-	public int[][] getInvolvedVariablesEntree() {
-		int[][] tableInvolvedVariable;
-		tableInvolvedVariable=new int[cons.length][];
-		
-		for(int i=0; i<cons.length; i++){		//parcourt des contraintes
-			tableInvolvedVariable[i]=new int[cons[i].arity];
-			for(int j=0; j<cons[i].arity; j++){		//parcourt des scopeID (variables implique dans la contrainte)
-				tableInvolvedVariable[i][j]=cons[i].scopeID[j];
-			}
-		}
-			
-		return tableInvolvedVariable;
-	}
-	
-	public int[][] getScopeID(){
-		int[][] tableScopeID=new int[nbConstraints][];
-		for(int i=0; i<nbConstraints; i++){
-			tableScopeID[i]=new int[cons[i].scopeID.length];
-			for(int j=0; j<cons[i].scopeID.length; j++)
-				tableScopeID[i][j]=cons[i].scopeID[j];
-		}
-		return tableScopeID;
-	}
-
-	public int[][] getHardInvolvedVariablesEntree() {
-		int taille=0;
-		for(int i=0; i<cons.length; i++)
-			if (!cons[i].relation.softConstraint)
-				taille++;
-			
-		int[][] tableInvolvedVariable;
-		tableInvolvedVariable=new int[taille][];
-		
-		for(int i=0; i<cons.length; i++){		//parcourt des contraintes
-			if (!cons[i].relation.softConstraint){
-				tableInvolvedVariable[i]=new int[cons[i].arity];
-				for(int j=0; j<cons[i].arity; j++){		//parcourt des scopeID (variables implique dans la contrainte)
-					tableInvolvedVariable[i][j]=cons[i].scopeID[j];
-				}
-			}
-		}
-			
-		return tableInvolvedVariable;
-	}
-	
-	
-	//renvoie vrai si cette variable est inclue dans au moins une des contraintes
-	///form s to e (inclue) les contraintes commencent a 1
-	public boolean isVariableUtile(Var v, int s, int e){
-		//System.out.println(v.name);
-		for(int i=s; i<e; i++){
-			if(cons[i]!=null){
-				for(int j=0; j<cons[i].scopeID.length; j++){
-					if(cons[i].scopeID[j]==v.pos-1)
-						return true;
-				}
-			}
-		}
-		//System.out.println("variable refusee : "+v.pos);
-		return false;
-	}
-	
-	public boolean isVariableUtile(Var v){
-		for(int i=0; i<cons.length; i++){
-			if(cons[i]!=null){
-				for(int j=0; j<cons[i].scopeID.length; j++){
-					if(cons[i].scopeID[j]==v.pos-1)
-						return true;
-				}
-			}
-		}
-		//System.out.println("variable refusee : "+v.pos);
-		return false;	}
-	
-	public void month(int deb, int fin) {
+	/*public void month(int deb, int fin) {
 		int idMonth=-1;
 		
 		for(int i=0; i<cons[0].arity; i++){
@@ -1799,232 +1300,8 @@ public void lectureCNF(String nomFichier){
 		//var.remove(0);
 		nbVariables--;
 
-	}
-	
-	//choix de l'heuristique d'organisation des contraintes.
-	public void reorganiseContraintes(HeuristiqueContraintes heuristique){
-		reorga=heuristique.reorganiseContraintes(var, cons);		
-	}
-	
-	//donne le num de contrainte correspondant à la place demandee
-	public int equiv(int place){
-		if(reorga!=null)
-			return reorga.get(place);
-		else
-			return place;
-	}
-	
-	public void afficheOrdreContraintes(){
-		System.out.print("ordre des contraintes : ");
-		for(int i=0; i<reorga.size(); i++){
-			if(cons[reorga.get(i)]!=null)
-				System.out.println(i+" : "+cons[reorga.get(i)].name);
-		}
-	}
-
-	public void viderReorga(){
-		reorga.clear();
-	}
-	
-	public Var getVar(String name) {
-		for(int i=0; i<var.size(); i++) {
-			if(var.get(i).name.compareTo(name)==0)
-				return var.get(i);
-		}
-		return null;
-	}
-	
-	
-	public void graphAdjascence(String s, boolean valued, boolean hard) {
-		FileWriter fW;
-//    	File f;
-    	
-    	String nomFichier=s;
-
-		//fichier
-    	if(nomFichier.endsWith(".dot"))
-    		nomFichier=nomFichier.substring(0, nomFichier.length()-4);
-    	
-		String name_file= "./" + nomFichier + ".dot";
-		String name_pdf= "./" + nomFichier + ".pdf";
-		try{
-			fW = new FileWriter(name_file);
-		
-	    	//entete
-	    	s="graph "+nomFichier+" {\n";
-	    	fW.write(s);
-	    	
-	    	//constraints
-	    	s="{node [width=.1,height=.1,label=\"\"]";
-	    	for(int cpt=0; cpt<nbConstraints; cpt++)
-	    	{
-	    		if(cons[cpt].arity>2)
-	    			s+=" "+cons[cpt].name;
-	    	}
-	    	s+="}\n";
-	    	fW.write(s);
-
-	    	
-	    	
-	    	for(int cpt=0; cpt<nbConstraints; cpt++)
-	    	{
-	    		if((cons[cpt].relation.softConstraint && valued) || (!cons[cpt].relation.softConstraint && hard)){
-		    		if(cons[cpt].arity>2) {
-			    		for(int i=0; i<cons[cpt].arity; i++){
-				    		s=cons[cpt].name + " -- " + var.get(cons[cpt].scopeID[i]).name + ";\n";
-				    	    fW.write(s);
-			    		}
-		    		}else {
-		    			if(cons[cpt].arity==2) {
-		    				s=var.get(cons[cpt].scopeID[0]).name + " -- " + var.get(cons[cpt].scopeID[1]).name + ";\n";
-				    	    fW.write(s);
-		    			}
-		    		}
-	    		}
-	    	}
-	    	
-	    	//end
-	    	s="}\n";
-	    	fW.write(s);
-	    	fW.close(); 
-
-
-		}catch(java.io.IOException exc){System.out.println("pb de fichier: " + exc);}
-		
-	}
-	
-	public void graphAdjascenceSimple(String s) {
-		FileWriter fW;
-//    	File f;
-    	
-    	String nomFichier=s;
-
-		//fichier
-    	if(nomFichier.endsWith(".dot"))
-    		nomFichier=nomFichier.substring(0, nomFichier.length()-4);
-    	
-		String name_file= "./" + nomFichier + ".dot";
-		String name_pdf= "./" + nomFichier + ".pdf";
-		try{
-			fW = new FileWriter(name_file);
-		
-	    	//entete
-	    	s="graph "+nomFichier+" {\n";
-	    	fW.write(s);
-		    	
-	    	
-	    	for(int cpt=0; cpt<nbConstraints; cpt++)
-	    	{
-	    		for(int i=0; i<cons[cpt].arity; i++)
-	    		{
-		    		for(int j=i+1; j<cons[cpt].arity; j++)
-		    		{
-		    			s=var.get(cons[cpt].scopeID[i]).name + " -- " + var.get(cons[cpt].scopeID[j]).name + ";\n";
-		    	    	fW.write(s);
-		    		}	    			
-	    		}
-	    	}
-	    	
-	    	//end
-	    	s="}\n";
-	    	fW.write(s);
-	    	fW.close(); 
-
-
-		}catch(java.io.IOException exc){System.out.println("pb de fichier: " + exc);}
-		
-	}
-	
-	
-/*	public int[][] getInvolvedVariablesConstraints() {
-		for (int i=0; i<cons.length; i++){		//on parcourt l'ensemble des contraintes
-		
-		String string=cons[i].scope+" ";
-		String subString="";
-		int[] variablesImpliques=new int[cons[num].arity]; int k=0;
-		
-		//obtenir la liste des variables
-		for(int i=0; i<string.length(); i++){
-			if(string.charAt(i)!=' ')
-				subString+=string.charAt(i);
-			else{
-				if(subString.length()!=0){
-					for (int j=0; j<var.length; j++){
-						if(var[j].name.compareTo(subString)==0){
-							variablesImpliques[k]=j+1;			//variables commencent a 1
-							k++;
-							subString="";
-							break;
-						}
-					}
-				}
-			}
-			
-		}
-		
-		int emplacement=0;
-		//obtenir l'enplacement de la relation
-		string=cons[num].reference;
-		for(int i=0; i<string.length(); i++){
-			if(string.charAt(i)!=' ')
-				subString+=string.charAt(i);
-		}
-		for (int j=0; j<rel.length; j++){
-			if(rel[j].name.compareTo(subString)==0){
-				emplacement=j;
-				break;
-			}
-		}
-		
-		//init
-		int[][] contrainteComplette=new int[rel[emplacement].nbTuples][nbVariables+1];
-		for(int i=1; i<nbVariables+1; i++)
-			for(int j=0; j<rel[emplacement].nbTuples; j++)
-				contrainteComplette[j][i]=-1;
-		
-		//suite
-		for(int i=0; i<rel[emplacement].nbTuples; i++)
-			for(int j=0; j<variablesImpliques.length; j++){
-				contrainteComplette[i][variablesImpliques[j]]=rel[emplacement].relation[i][j];
-				contrainteComplette[i][0]=(rel[emplacement].poid[i]-rel[emplacement].defaultCost);	//ne pas oublier d'enlever le poid par defaut
-			}
-	
-		return contrainteComplette;
 	}*/
 	
-	/*public int[] getConstraintPoid(int num) {
-		String string=cons[num].scope;
-		String subString="";
 
-		int emplacement=0;
-		//obtenir l'emplacement de la relation
-		string=cons[num].reference;
-		for(int i=0; i<string.length(); i++){
-			if(string.charAt(i)!=' ')
-				subString+=string.charAt(i);
-		}
-		for (int j=0; j<rel.length; j++){
-			if(rel[j].name.compareTo(subString)==0){
-				emplacement=j;
-				break;
-			}
-		}
-		
-		//init
-		int[] poidComplet=new int[rel[emplacement].nbTuples];	
-		//suite
-		for(int i=0; i<rel[emplacement].nbTuples; i++)
-			poidComplet=rel[emplacement].poid;
-	
-		return poidComplet;
-	}*/
-
-/*  private static String getTagValue(String sTag, Element eElement) {
-	NodeList nlList = eElement.getElementsByTagName(sTag).item(0).getChildNodes();
- 
-        Node nValue = (Node) nlList.item(0);
- 
-	return nValue.getNodeValue();
-  }*/
 	
 }

@@ -230,40 +230,35 @@ public class SALADD {
 		long start= System.currentTimeMillis();
 		long end;
 		
-		Ordonnancement ord;			
-		ord = new Ordonnancement();
+		ConstraintsNetwork cn = new ConstraintsNetwork();
 		LecteurXML xml=new LecteurXML();
 		if(arg_plus){
 			if(file_names.get(0).contains(".xml"))
-				xml.lecture(file_names.get(0));
+				xml.lecture(file_names.get(0), cn);
 			else if(file_names.get(0).contains(".cnf"))
-				xml.lectureCNF(file_names.get(0));
+				xml.lectureCNF(file_names.get(0), cn);
 			//else if(file_names.get(0).contains(".cons"))
 			//	xml.readContraintes(file_names.get(0));
 			else
-				xml.lecture(file_names.get(0));
+				xml.lecture(file_names.get(0), cn);
 
 		}else{	
-			xml.lectureBIFpifi(file_names.get(0), arg_plus);
+			//xml.lectureBIFpifi(file_names.get(0), arg_plus, cn);
 		}
 
 		for(int i=1; i<file_names.size(); i++){
-			xml.lectureSuite(file_names.get(i));
+			xml.lectureSuite(file_names.get(i), cn);
 		}
 		
-		ord.addVarialbes(xml.getVariables());
-		if(xml.getNbVariables()!=ord.size())
-			System.out.println("bug nb variables");
+		cn.actualise();
+		cn.reordoner(arg_heuristique, false);			//<---
 		
+		cn.compactConstraint();
 		
-		ord.reordoner(xml.getInvolvedVariablesEntree(), arg_heuristique, false);			//<---
-		xml.actualiseVariables();
-		xml.compactConstraint();
-		
-		UniqueHashTable uht=new UniqueHashTable(ord.size());
-		x =new VDD(ord.getVariables(), uht, arg_plus);
+		UniqueHashTable uht=new UniqueHashTable(cn.nbVariables);
+		x =new VDD(cn.getVariables(), uht, arg_plus);
 
-		uht.ellagage(xml);
+		uht.ellagage(cn);
 
 			
 		x.flagMult=(!arg_plus);											//<---
@@ -271,45 +266,34 @@ public class SALADD {
 			
 	
 		int contraintes[][];
-		String contraintesS[][];
+		Constraint c;
 		Structure Poids[];
 		Structure defaultCost;
 		boolean softConstraint;
 		boolean conflictsConstraint;
 		
 		System.out.println();
-		xml.reorganiseContraintes(arg_heuristique_cons);
+		cn.reorganiseContraintes(arg_heuristique_cons);
 		
 		if(arg_affich_text==3){
-			ord.afficherOrdre();
-			xml.afficheOrdreContraintes();
+			cn.afficherOrdre();
 		}
 		
 	
-		for(int i1=0; i1<xml.nbConstraints; i1++){
-			int i=xml.equiv(i1);
+		for(int i=0; i<cn.nbConstraints; i++){
 		
-			contraintesS=xml.getConstraintS(i);
+			c=cn.getCons(i);
 			
 			
 			
-			if(contraintesS!=null){
-				Poids=xml.getPoid(i);
-				if(contraintesS.length!=0){
-					defaultCost=xml.getDefaultCost(i);
-					softConstraint=xml.getSoftConstraint(i);
-					conflictsConstraint=xml.getConflictsConstraint(i);
-				
+			if(c!=null){
+				Poids=c.getPoidTab();
+				if(c.arity!=0){
+					defaultCost=c.defaultCost;
+					softConstraint=c.softConstraint;
+					conflictsConstraint=c.conflictsConstraint;				
 
-					contraintes=new int[contraintesS.length][contraintesS[0].length];
-								
-				//traduction en valeur de 0 a n (au lieu de strings)
-					for(int j=0; j<contraintes.length; j++){
-						for(int k=1; k<contraintes[j].length; k++){
-							contraintes[j][k]=ord.getVariables().get(k-1).conv(contraintesS[j][k]);
-						}
-					}
-
+					contraintes=cn.getFullCons(i);
 			
 					x.valeurChemin(contraintes, Poids, defaultCost, softConstraint, conflictsConstraint);
 
@@ -318,13 +302,40 @@ public class SALADD {
 					//uht.detect();
 					if(arg_affich_text>=2){
 						end=System.currentTimeMillis();
-						System.out.println(i1+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s");
+						System.out.println(i+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s");
 					}
 				}
 			}
 //			System.gc();
 		}
 		x.affichageResultats(arg_affich_text, start);
+	}
+	
+	
+	/**
+	 * Suppression des noeuds begayants (redondants, inutiles)
+	 * Ces noeuds sont pourtant necessaires pour la quasi totalité des fonctions proposées par cette bibliothèque
+	 * 
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 2 (beaucoup de texte)
+	 */
+	public void getGraphAdjContraints(ArrayList<String> file_names){
+		ConstraintsNetwork cn = new ConstraintsNetwork();
+		LecteurXML xml=new LecteurXML();
+		if(file_names.get(0).contains(".xml"))
+			xml.lecture(file_names.get(0), cn);
+		else if(file_names.get(0).contains(".cnf"))
+			xml.lectureCNF(file_names.get(0), cn);
+		//else if(file_names.get(0).contains(".cons"))
+			//xml.readContraintes(file_names.get(0));
+		else
+			xml.lecture(file_names.get(0), cn);
+
+		for(int i=1; i<file_names.size(); i++){
+			xml.lectureSuite(file_names.get(i), cn);
+		}
+		
+		cn.graphAdjascenceSimpleDot(file_names.get(0)+"adjGS");
+		cn.graphAdjascenceDot(file_names.get(0)+"adjG", true, true);
 	}
 	
 	/**
@@ -379,9 +390,9 @@ public class SALADD {
 		long start= System.currentTimeMillis();
 		long end;
 		
-		Ordonnancement ord;			
-		ord = new Ordonnancement();
 		LecteurXML xml=new LecteurXML();
+		ConstraintsNetwork cn = new ConstraintsNetwork();
+
 		
 /*		for(int i=0; i<file_name.size(); i++)
 		{
@@ -397,27 +408,21 @@ public class SALADD {
 		for(int i=1; i<file_name.size(); i++){
 			xml.lectureSuite(file_name.get(i));
 		}*/
-		xml.lecture(file_names.get(0));
+		xml.lecture(file_names.get(0), cn);
 
 		for(int i=1; i<file_names.size(); i++){
-			xml.lectureSuite(file_names.get(i));
+			xml.lectureSuite(file_names.get(i), cn);
 		}
 		
 		
-//			xml.month(12,12);
-		ord.addVarialbes(xml.getVariables());
-//			ord.supprmonth();
-		
-		if(xml.getNbVariables()!=ord.size())
-			System.out.println("bug nb variables");
 		
 		
 //			ord.reordoner(xml.getInvolvedVariablesEntree(), 0, false);			//<---
-		xml.actualiseVariables();
+		cn.actualise();
 //			xml.compactConstraint();
 		
-		UniqueHashTable uht=new UniqueHashTable(ord.size());
-		x =new VDD(ord.getVariables(), uht, true);
+		UniqueHashTable uht=new UniqueHashTable(cn.nbVariables);
+		x =new VDD(cn.getVar(), uht, true);
 
 			
 		x.flagMult=false;											//<---
@@ -425,7 +430,7 @@ public class SALADD {
 			
 	
 		int contraintes[][];
-		String contraintesS[][];
+		Constraint c;
 		Structure Poids[];
 		Structure defaultCost;
 		boolean softConstraint;
@@ -434,36 +439,32 @@ public class SALADD {
 //			xml.reorganiseContraintes(0);
 		
 	
-		for(int i1=0; i1<xml.nbConstraints; i1++){
-			int i=xml.equiv(i1);
 		
-			contraintesS=xml.getConstraintS(i);
-			if(contraintesS!=null){
-				Poids=xml.getPoid(i);
-				if(contraintesS.length!=0){
-					defaultCost=xml.getDefaultCost(i);
-					softConstraint=xml.getSoftConstraint(i);
-					conflictsConstraint=xml.getConflictsConstraint(i);
-				
+		for(int i=0; i<cn.nbConstraints; i++){
+			
+			c=cn.getCons(i);
+			
+			
+			
+			if(c!=null){
+				Poids=c.getPoidTab();
+				if(c.arity!=0){
+					defaultCost=c.defaultCost;
+					softConstraint=c.softConstraint;
+					conflictsConstraint=c.conflictsConstraint;				
 
-					contraintes=new int[contraintesS.length][contraintesS[0].length];
-								
-				//traduction en valeur de 0 a n (au lieu de strings)
-					for(int j=0; j<contraintes.length; j++){
-						for(int k=1; k<contraintes[j].length; k++){
-							contraintes[j][k]=ord.getVariables().get(k-1).conv(contraintesS[j][k]);
-						}
-					}
-									
+					contraintes=c.getConsTab();
+			
 					x.valeurChemin(contraintes, Poids, defaultCost, softConstraint, conflictsConstraint);
+
+
 					
 					//uht.detect();
 					if(arg_affich_text>=2){
 						end=System.currentTimeMillis();
-						System.out.println("nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s");
-					}	
-					
-				}	
+						System.out.println(i+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s");
+					}
+				}
 			}
 		}
 		x.affichageResultats(arg_affich_text, start);

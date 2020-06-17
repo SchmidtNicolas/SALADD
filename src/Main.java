@@ -14,8 +14,7 @@ public class Main {
 		SALADD s=new SALADD();
 		
 		ArrayList<String> files=new ArrayList<>();
-		files.add("big.xml");
-		files.add("bigPrices.xml");
+		files.add("smallRed.xml");
 		//files.add("Benchmarcks\\cnf\\Handmade\\ais\\ais12d.cons");
 		
 		//big.xml et bigPrices.xml; nature additive; heuristique numero 4; heuristique de contraintes numero 2; affichage de texte niveau 2 sur 3
@@ -23,6 +22,8 @@ public class Main {
 	
 		
 		s.suppressionNoeudsBegayants();
+		
+		s.save("small.dot");
 		
 		System.out.println(s.nb_edges());
 		System.out.println(s.nb_nodes());

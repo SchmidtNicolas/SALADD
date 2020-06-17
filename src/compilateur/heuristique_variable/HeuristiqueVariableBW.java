@@ -2,7 +2,7 @@ package compilateur.heuristique_variable;
 
 import java.util.ArrayList;
 
-import compilateur.Ordonnancement;
+import compilateur.ConstraintsNetwork;
 import compilateur.Var;
 
 
@@ -25,7 +25,7 @@ import compilateur.Var;
 public class HeuristiqueVariableBW implements HeuristiqueVariable {
 
 	@Override
-	public ArrayList<Var> reordoner(int[][] contraintes, ArrayList<Var> listeVariables, Ordonnancement ord) {
+	public ArrayList<Var> reordoner(int[][] contraintes, ArrayList<Var> listeVariables, ConstraintsNetwork cn) {
 		ArrayList<Var> liste=new ArrayList<Var>();
 	int[] bandWidth=new int[listeVariables.size()];
 	for(int i=0; i<bandWidth.length; i++)
@@ -34,8 +34,7 @@ public class HeuristiqueVariableBW implements HeuristiqueVariable {
 	int max;
 	int varmax;
 	
-	ord.constGraphAdj(contraintes);
-	ord.constNbContraintes(contraintes);
+	cn.actualise();
 	
 	//init : v0    (a changer)
 	liste.add(listeVariables.get(0));
@@ -50,7 +49,7 @@ public class HeuristiqueVariableBW implements HeuristiqueVariable {
 		for(int i=0; i<liste.size(); i++){
 			for(int j=0; j<listeVariables.size(); j++){
 				if(bandWidth[j]>=0){					//pas deja passee
-					if(ord.graphAdj[i][j]>0)
+					if(cn.graphAdjVarVar[i][j]>0)
 						bandWidth[j]+=(int)Math.pow((liste.size()-i), 2);
 				}
 			}

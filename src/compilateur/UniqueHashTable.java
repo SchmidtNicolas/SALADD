@@ -1668,20 +1668,20 @@ public class UniqueHashTable {
 	//permet de supprimer des varialbes qui ne seront pas utilise au cours de la compilation. on les rajoutera plus tard eventuellement.
 	//cette fonction doit etre lancee juste apres la creation du sldd blanc
 	//on regarde les contraintes de s a e (incluses, les contraintes commencent a 1)
-	public void ellagage(LecteurXML xml, int s, int e){
+	public void ellagage(ConstraintsNetwork cn, int s, int e){
 		Var v;
 		for (int i=0; i<nbVariables; i++){
 			v=this.get(i+1).get(0).variable;
-			if(!xml.isVariableUtile(v, s, e)){
+			if(!cn.isVariableUtile(v, s, e)){
 				this.courtcircuit(this.get(i+1).get(0));
 			}
 		}
 	}
-	public void ellagage(LecteurXML xml){
+	public void ellagage(ConstraintsNetwork cn){
 		Var v;
 		for (int i=0; i<nbVariables; i++){
 			v=this.get(i+1).get(0).variable;
-			if(!xml.isVariableUtile(v)){
+			if(!cn.isVariableUtile(v)){
 				this.courtcircuit(this.get(i+1).get(0));
 			}
 		}

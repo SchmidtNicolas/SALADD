@@ -2,8 +2,8 @@ package compilateur.heuristique_contraintes;
 
 import java.util.ArrayList;
 
+import compilateur.ConstraintsNetwork;
 import compilateur.Var;
-import compilateur.LecteurXML.Constraint;
 
 
 /*   (C) Copyright 2013, Schmidt Nicolas
@@ -24,9 +24,9 @@ import compilateur.LecteurXML.Constraint;
 
 public class HeuristiqueContraintesDomaineMaxDomaineMaxEcartMaxHardFirst implements HeuristiqueContraintes {
 
-	public ArrayList<Integer> reorganiseContraintes(ArrayList<Var> var, Constraint[] cons)
+	public ArrayList<Integer> reorganiseContraintes(ArrayList<Var> var, ConstraintsNetwork cn)
 	{
-		int nbContraintes = cons.length;
+		int nbContraintes = cn.nbConstraints;
 		ArrayList<Integer> reorga=new ArrayList<Integer>();
 
 		int ecart;
@@ -40,18 +40,18 @@ public class HeuristiqueContraintesDomaineMaxDomaineMaxEcartMaxHardFirst impleme
 	
 			
 		for(int i=0; i<nbContraintes; i++){
-			if(cons[i]!=null){
+			if(cn.getCons(i)!=null){
 				int ecartmax=0;
 				int domainmax=0;
 				int domainmax2=1;
 				score[i]=0;
-				for(int j=0; j<cons[i].scopeID.length; j++){
-					for(int k=j+1; k<cons[i].scopeID.length; k++){
-						ecart=Math.abs(cons[i].scopeID[j]-cons[i].scopeID[k]);
+				for(int j=0; j<cn.getCons(i).arity; j++){
+					for(int k=j+1; k<cn.getCons(i).arity; k++){
+						ecart=Math.abs(cn.getCons(i).scopeID.get(j)-cn.getCons(i).scopeID.get(k));
 						if(ecart>ecartmax)
 							ecartmax=ecart;
 					}
-					domain=var.get(cons[i].scopeID[j]).domain;
+					domain=var.get(cn.getCons(i).scopeID.get(j)).domain;
 					if(domain>domainmax){
 						domainmax2=domainmax;
 						domainmax=domain;
@@ -69,7 +69,7 @@ public class HeuristiqueContraintesDomaineMaxDomaineMaxEcartMaxHardFirst impleme
 		int j=0;
 		for(j=0; j<nbContraintes; j++){
 			for(int i=0; i<nbContraintes; i++){
-				if(cons[i]!=null && !cons[i].relation.softConstraint){
+				if(cn.getCons(i)!=null && !cn.getCons(i).softConstraint){
 					if(score[i]>max){
 						max=score[i];
 						maxVal=i;
@@ -90,7 +90,7 @@ public class HeuristiqueContraintesDomaineMaxDomaineMaxEcartMaxHardFirst impleme
 		
 		for(;j<nbContraintes; j++){
 			for(int i=0; i<nbContraintes; i++){
-				if(cons[i]!=null && cons[i].relation.softConstraint){
+				if(cn.getCons(i)!=null && cn.getCons(i).softConstraint){
 					if(score[i]>max){
 						max=score[i];
 						maxVal=i;
@@ -104,7 +104,7 @@ public class HeuristiqueContraintesDomaineMaxDomaineMaxEcartMaxHardFirst impleme
 				maxVal=-1;
 			}else{			//reste plus que des contraintes nulles
 				for(int i=0; i<nbContraintes; i++){
-					if(cons[i]==null){
+					if(cn.getCons(i)==null){
 						reorga.add(i);
 					}
 				}

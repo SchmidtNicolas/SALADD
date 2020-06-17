@@ -3,7 +3,7 @@ package compilateur.heuristique_contraintes;
 import java.util.ArrayList;
 
 import compilateur.Var;
-import compilateur.LecteurXML.Constraint;
+import compilateur.ConstraintsNetwork;
 
 
 /*   (C) Copyright 2013, Schmidt Nicolas
@@ -24,6 +24,6 @@ import compilateur.LecteurXML.Constraint;
 
 public interface HeuristiqueContraintes {
 
-	public ArrayList<Integer> reorganiseContraintes(ArrayList<Var> var, Constraint[] cons);
+	public ArrayList<Integer> reorganiseContraintes(ArrayList<Var> var, ConstraintsNetwork cn);
 	
 }

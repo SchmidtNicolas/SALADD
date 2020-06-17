@@ -2,7 +2,7 @@ package compilateur.heuristique_variable;
 
 import java.util.ArrayList;
 
-import compilateur.Ordonnancement;
+import compilateur.ConstraintsNetwork;
 import compilateur.Var;
 
 
@@ -25,26 +25,26 @@ import compilateur.Var;
 public class HeuristiqueVariableMCF implements HeuristiqueVariable {
 
 	@Override
-	public ArrayList<Var> reordoner(int[][] contraintes, ArrayList<Var> listeVariables, Ordonnancement ord) {
+	public ArrayList<Var> reordoner(int[][] contraintes, ArrayList<Var> listeVariables, ConstraintsNetwork cn) {
 		
 		ArrayList<Var> liste=new ArrayList<Var>();
 		
-		ord.constNbContraintes(contraintes);
+		cn.actualise();
 		
 		int max=-1;
 		int varmax=-1;
 		
 		for(int curr=0; curr<listeVariables.size(); curr++){
 			for(int i=0; i<listeVariables.size(); i++){
-				if(ord.nbContraintes[i]>max){
-					max=ord.nbContraintes[i];
+				if(cn.OccurenceVariableDansContraintes.get(i)>max){
+					max=cn.OccurenceVariableDansContraintes.get(i);
 					varmax=i;
 				}
 			}
 			//System.out.println(varmax + "   " + variables.get(varmax).name);
 			liste.add(listeVariables.get(varmax));
 			
-			ord.nbContraintes[varmax]=-1;		//faut plus qu'elle ressorte
+			cn.OccurenceVariableDansContraintes.set(varmax, cn.OccurenceVariableDansContraintes.get(varmax)+1);	//++	//faut plus qu'elle ressorte
 			max=-1;
 			varmax=-1;
 		}

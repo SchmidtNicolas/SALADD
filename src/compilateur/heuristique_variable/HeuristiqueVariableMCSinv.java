@@ -2,7 +2,7 @@ package compilateur.heuristique_variable;
 
 import java.util.ArrayList;
 
-import compilateur.Ordonnancement;
+import compilateur.ConstraintsNetwork;
 import compilateur.Var;
 
 
@@ -25,9 +25,10 @@ import compilateur.Var;
 public class HeuristiqueVariableMCSinv implements HeuristiqueVariable {
 
 	@Override
-	public ArrayList<Var> reordoner(int[][] contraintes, ArrayList<Var> listeVariables, Ordonnancement ord) {
+	public ArrayList<Var> reordoner(int[][] contraintes, ArrayList<Var> listeVariables, ConstraintsNetwork cn) {
 		ArrayList<Var> liste=new ArrayList<Var>();
-		ord.constGraphAdj(contraintes);
+		
+		cn.actualise();
 		//constNbContraintes(contraintes);
 		
 		int score[]=new int[listeVariables.size()];
@@ -47,7 +48,7 @@ public class HeuristiqueVariableMCSinv implements HeuristiqueVariable {
 			score[varmax]=-1;		//faut plus qu'elle ressorte
 			//mise a jours de score
 			for(int i=0; i<listeVariables.size(); i++){
-				if(score[i]!=-1 && ord.graphAdj[varmax][i]>0)
+				if(score[i]!=-1 && cn.graphAdjVarVar[varmax][i]>0)
 					score[i]++;
 			}
 			max=-1;

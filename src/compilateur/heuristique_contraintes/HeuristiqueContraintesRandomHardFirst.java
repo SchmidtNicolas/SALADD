@@ -2,8 +2,8 @@ package compilateur.heuristique_contraintes;
 
 import java.util.ArrayList;
 
+import compilateur.ConstraintsNetwork;
 import compilateur.Var;
-import compilateur.LecteurXML.Constraint;
 
 
 /*   (C) Copyright 2013, Schmidt Nicolas
@@ -24,9 +24,9 @@ import compilateur.LecteurXML.Constraint;
 
 public class HeuristiqueContraintesRandomHardFirst implements HeuristiqueContraintes {
 
-	public ArrayList<Integer> reorganiseContraintes(ArrayList<Var> var, Constraint[] cons)
+	public ArrayList<Integer> reorganiseContraintes(ArrayList<Var> var, ConstraintsNetwork cn)
 	{
-		int nbContraintes = cons.length;
+		int nbContraintes = cn.nbConstraints;
 		ArrayList<Integer> reorga=new ArrayList<Integer>();
 
 //		int proddomain=1;
@@ -40,7 +40,7 @@ public class HeuristiqueContraintesRandomHardFirst implements HeuristiqueContrai
 			
 		for(int i=0; i<nbContraintes; i++){
 			score[i]=2;
-			if(cons[i]!=null){
+			if(cn.getCons(i)!=null){
 				score[i]=Math.random();
 			}
 		}
@@ -51,7 +51,7 @@ public class HeuristiqueContraintesRandomHardFirst implements HeuristiqueContrai
 		int j=0;
 		for(j=0; j<nbContraintes; j++){
 			for(int i=0; i<nbContraintes; i++){
-				if(cons[i]!=null && !cons[i].relation.softConstraint){
+				if(cn.getCons(i)!=null && !cn.getCons(i).softConstraint){
 					if(score[i]<min){
 						min=score[i];
 						minVal=i;
@@ -72,7 +72,7 @@ public class HeuristiqueContraintesRandomHardFirst implements HeuristiqueContrai
 		
 		for(; j<nbContraintes; j++){
 			for(int i=0; i<nbContraintes; i++){
-				if(cons[i]!=null && cons[i].relation.softConstraint){
+				if(cn.getCons(i)!=null && cn.getCons(i).softConstraint){
 					if(score[i]<min){
 						min=score[i];
 						minVal=i;
@@ -86,7 +86,7 @@ public class HeuristiqueContraintesRandomHardFirst implements HeuristiqueContrai
 				minVal=-1;
 			}else{			//reste plus que des contraintes nulles
 				for(int i=0; i<nbContraintes; i++){
-					if(cons[i]==null){
+					if(cn.getCons(i)==null){
 						reorga.add(i);
 					}
 				}

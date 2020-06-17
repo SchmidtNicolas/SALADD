@@ -2,8 +2,8 @@ package compilateur.heuristique_contraintes;
 
 import java.util.ArrayList;
 
+import compilateur.ConstraintsNetwork;
 import compilateur.Var;
-import compilateur.LecteurXML.Constraint;
 
 
 /*   (C) Copyright 2013, Schmidt Nicolas
@@ -24,18 +24,18 @@ import compilateur.LecteurXML.Constraint;
 
 public class HeuristiqueContraintesBCF implements HeuristiqueContraintes {
 	
-	public ArrayList<Integer> reorganiseContraintes(ArrayList<Var> var, Constraint[] cons)
+	public ArrayList<Integer> reorganiseContraintes(ArrayList<Var> var, ConstraintsNetwork cn)
 	{
-		int nbContraintes = cons.length;
+		int nbContraintes = cn.nbConstraints;
 		ArrayList<Integer> reorga=new ArrayList<Integer>();
 		int max=0;
 		int maxVal=-1;
 		for(int j=0; j<nbContraintes; j++){
 			for(int i=0; i<nbContraintes; i++){
 	
-				if(cons[i]!=null){
-					if(!reorga.contains(i) && cons[i].arity>max){
-						max=cons[i].arity;
+				if(cn.getCons(i)!=null){
+					if(!reorga.contains(i) && cn.getCons(i).arity>max){
+						max=cn.getCons(i).arity;
 						maxVal=i;
 					}
 				}
@@ -46,7 +46,7 @@ public class HeuristiqueContraintesBCF implements HeuristiqueContraintes {
 				maxVal=-1;
 			}else{			//reste plus que des contraintes supprimes
 				for(int i=0; i<nbContraintes; i++){
-					if(cons[i]==null)
+					if(cn.getCons(i)==null)
 						reorga.add(i);
 				}
 				break;

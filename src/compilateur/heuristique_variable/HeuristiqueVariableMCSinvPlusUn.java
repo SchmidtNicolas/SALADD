@@ -2,7 +2,7 @@ package compilateur.heuristique_variable;
 
 import java.util.ArrayList;
 
-import compilateur.Ordonnancement;
+import compilateur.ConstraintsNetwork;
 import compilateur.Var;
 
 
@@ -25,9 +25,10 @@ import compilateur.Var;
 public class HeuristiqueVariableMCSinvPlusUn implements HeuristiqueVariable {
 
 	@Override
-	public ArrayList<Var> reordoner(int[][] contraintes, ArrayList<Var> listeVariables, Ordonnancement ord) {
+	public ArrayList<Var> reordoner(int[][] contraintes, ArrayList<Var> listeVariables, ConstraintsNetwork cn) {
 		ArrayList<Var> liste=new ArrayList<Var>();
-	ord.constGraphAdj(contraintes);
+	
+cn.actualise();
 	//constNbContraintes(contraintes);
 	
 	int score[]=new int[listeVariables.size()];
@@ -55,7 +56,7 @@ public class HeuristiqueVariableMCSinvPlusUn implements HeuristiqueVariable {
 					if(score[j]!=-1 && j!=i){
 						//pour tous les j non encore ajoute
 						scoreplus1[j]=score[j];
-						if(ord.graphAdj[i][j]>0){
+						if(cn.graphAdjVarVar[i][j]>0){
 							scoreplus1[j]++;
 						}
 						somme+=scoreplus1[j];
@@ -76,9 +77,9 @@ public class HeuristiqueVariableMCSinvPlusUn implements HeuristiqueVariable {
 		score[varminplus1]=-1;		//faut plus qu'elle ressorte
 		//mise a jours de score
 		for(int i=0; i<listeVariables.size(); i++){
-			if(score[i]!=-1 && ord.graphAdj[varminplus1][i]>0){
+			if(score[i]!=-1 && cn.graphAdjVarVar[varminplus1][i]>0){
 				//recherche de l'arite max
-				score[i]+=ord.graphAdj[varminplus1][i]-1;
+				score[i]+=cn.graphAdjVarVar[varminplus1][i]-1;
 				//score[i]+=1;
 			}
 		}

@@ -2,8 +2,8 @@ package compilateur.heuristique_contraintes;
 
 import java.util.ArrayList;
 
+import compilateur.ConstraintsNetwork;
 import compilateur.Var;
-import compilateur.LecteurXML.Constraint;
 
 
 /*   (C) Copyright 2013, Schmidt Nicolas
@@ -24,9 +24,9 @@ import compilateur.LecteurXML.Constraint;
 
 public class HeuristiqueContraintesRien implements HeuristiqueContraintes {
 
-	public ArrayList<Integer> reorganiseContraintes(ArrayList<Var> var, Constraint[] cons)
+	public ArrayList<Integer> reorganiseContraintes(ArrayList<Var> var, ConstraintsNetwork cn)
 	{
-		int nbContraintes = cons.length;
+		int nbContraintes = cn.nbConstraints;
 		ArrayList<Integer> reorga=new ArrayList<Integer>();
 
 		for(int i=0; i<nbContraintes; i++)
