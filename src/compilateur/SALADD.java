@@ -263,6 +263,11 @@ public class SALADD {
 		UniqueHashTable uht=new UniqueHashTable(ord.size());
 		x =new VDD(ord.getVariables(), uht, arg_plus);
 
+		ArrayList<Var> ordre=ord.getVariables();
+		for(int i=0; i<ordre.size(); i++)
+			System.out.print(" "+ordre.get(i).name);
+		System.out.println();
+		
 		uht.ellagage(xml);
 
 			
