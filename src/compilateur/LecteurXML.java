@@ -262,7 +262,7 @@ public class LecteurXML {
 				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 					Element eElement = (Element) nNode;
 
-					Var v=new Var(eElement.getAttribute("name"), temp+1);			
+					Var v=new Var(eElement.getAttribute("name"), temp);			
 					var.add(v);
 					
 					Domain d=this.getdomain(eElement.getAttribute("domain"));
@@ -462,7 +462,7 @@ public void lectureSuite(String nomFichier, ConstraintsNetwork cn) {
 
 			//////Constraint//////
 			nList = doc.getElementsByTagName("constraint");
-			for (int temp = 0; temp < nbConstraints; temp++) {
+			for (int temp = 0; temp < nbConstraints2; temp++) {
 				Node nNode = nList.item(temp);
 				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 					Element eElement = (Element) nNode;
@@ -502,13 +502,12 @@ public void lectureSuite(String nomFichier, ConstraintsNetwork cn) {
 						for(int j=0; j<currentRel.arity; j++) 
 							newTuple.add(cn.getVar(j).conv(currentRel.relation[i][j]));
 						c.cons.add(newTuple);
+						c.poid.add(currentRel.poid[i].copie());
 					}
 					c.defaultCost=currentRel.defaultCost; 
 					c.conflictsConstraint=currentRel.conflictsConstraint;
 					c.softConstraint=currentRel.softConstraint;
-					for(int i=0; i<currentRel.poid.length; i++) {
-						c.poid.add(currentRel.poid[i].copie());
-					}
+					
 					
 					cn.addCons(c);				
 				}
@@ -553,7 +552,7 @@ public void lectureBIFfaux(String nomFichier, boolean arg_plus, ConstraintsNetwo
 					NodeList nList2 = eElement.getElementsByTagName("NAME");
 					String stringName="";
 				    stringName = nList2.item(0).getTextContent();
-				    Var v=new Var(stringName, temp+1);
+				    Var v=new Var(stringName, temp);
 					var.add(v);
 					
 					//on parcourt les Values
@@ -792,7 +791,7 @@ public void lectureBIFpifi(String nomFichier, boolean arg_plus) {
 					NodeList nList2 = eElement.getElementsByTagName("NAME");
 					String stringName="";
 				    stringName = nList2.item(0).getTextContent();
-				    Var v=new Var(stringName, temp+1);
+				    Var v=new Var(stringName, temp);
 					var.add(v);
 					
 					//on parcourt les Values
@@ -968,7 +967,7 @@ public void lectureBIF(String nomFichier, boolean arg_plus) {
 					NodeList nList2 = eElement.getElementsByTagName("NAME");
 					String stringName="";
 				    stringName = nList2.item(0).getTextContent();
-				    Var v=new Var(stringName, temp+1);
+				    Var v=new Var(stringName, temp);
 					var.add(v);
 					
 					//on parcourt les Values
@@ -1193,7 +1192,7 @@ public void lectureCNF(String nomFichier, ConstraintsNetwork cn){
 	public ArrayList<Var> addAllVariablesAsBoolean(int nbVar) {
 		ArrayList<Var> var=new ArrayList<Var>();
 		
-		for(int i=1; i<=nbVar; i++) {
+		for(int i=0; i<nbVar; i++) {
 			Var v=new Var("v"+String.valueOf(i), i);
 			v.setBoolean();
 			var.add(v);

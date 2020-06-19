@@ -256,7 +256,7 @@ public class SALADD {
 		cn.compactConstraint();
 		
 		UniqueHashTable uht=new UniqueHashTable(cn.nbVariables);
-		x =new VDD(cn.getVariables(), uht, arg_plus);
+		x =new VDD(cn.getVarPos(), uht, arg_plus);
 
 		uht.ellagage(cn);
 
@@ -279,10 +279,17 @@ public class SALADD {
 			cn.afficherOrdre();
 		}
 		
+		ArrayList<Var> ordre=cn.getVarPos();
+		for(int i=0; i<ordre.size(); i++)
+			System.out.print(" "+ordre.get(i).name);
+		System.out.println();
 	
 		for(int i=0; i<cn.nbConstraints; i++){
-		
-			c=cn.getCons(i);
+			
+			//if(i==15)
+			//	c=null;
+			//else
+				c=cn.getCons(i);
 			
 			
 			
@@ -302,7 +309,7 @@ public class SALADD {
 					//uht.detect();
 					if(arg_affich_text>=2){
 						end=System.currentTimeMillis();
-						System.out.println(i+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s");
+						System.out.println(i+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s " + c.name + " "+ c.computPercentOfRefusedTuples(cn.getVar()) +"%");
 					}
 				}
 			}
@@ -422,7 +429,7 @@ public class SALADD {
 //			xml.compactConstraint();
 		
 		UniqueHashTable uht=new UniqueHashTable(cn.nbVariables);
-		x =new VDD(cn.getVar(), uht, true);
+		x =new VDD(cn.getVarPos(), uht, true);
 
 			
 		x.flagMult=false;											//<---
@@ -480,7 +487,6 @@ public class SALADD {
 
 		compilation(FichiersACompiler, arg_plus, arg_heuristique, arg_heuristique_cons, arg_affich_text);
 		
-		x.toDot("b", false);
 		//affiche les resultats, es supprim les noeuds beg si besoin
 		
 		x.affichageResultats(arg_affich_text, start);

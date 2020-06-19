@@ -155,101 +155,7 @@ public class VDD{
 
 		
     } 
-    //operation de deux VDD
-/*    public VDD(VDD a, VDD b, UniqueHashTable u){
-		boolean plus=true;
-    	uht=u;
-		variables=a.variables;
-		last=new NodeDDlast();
-		Structure s;
-		
-		NodeDD tete=new NodeDD(variables.get(0));
-		first=new Arc(tete, plus);						//todo
-//		uht.add(tete);
-		
-		NodeDD precedant;
-		precedant=tete;
-		
-		for(int i=1; i<variables.size(); i++){				//on ajoute chaque neud, avec un lien, avec n arcs
-			NodeDD suivant=new NodeDD(variables.get(i));		//neuds : variable de 1 a x
-			for(int j=0; j<variables.get(i-1).domain; j++){		//domaine : de 0 a x-1
-				if(plus)
-					s=new Sp();
-				else
-					s=new St();
-				new Arc(precedant, suivant, j, s);		//int donc SLDD+
-			}
-			uht.add(precedant);	
-			precedant=suivant;
-		}
-		
-		
-		for(int j=0; j<variables.get(variables.size()-1).domain; j++){		//on ajoute les feuilles au dernier
-			if(plus)
-				s=new Sp();
-			else
-				s=new St();
-			new Arc(precedant, last, j, s);
-		}
-		uht.add(precedant);
-		uht.add(last);
-    	
-    	this.first.s.initOperation(a.first.s, b.first.s);
-    	this.first.fils.copie.add(a.first.fils);
-    	this.first.fils.copie.add(b.first.fils);				//pas besoin de suppr ce noeud pour tout ca
-    	
-    	
-    	this.add(a, b, 1);
-    	
-    	uht.copieToNull();
-    	uht.normaliser();   	
- 	}*/
-    
-    
-    
-    
-//methodes
- 
 
-    
-    //risque d'explosion !!!!
-    //recursif descend les valeurs sur les feuilles finales
-    ////////////obsolete !!!!!//////////////////
-/*    public void combDown(NodeDD curr){			//peigne vers le bas
-
-    	curr.cpt=0;												//neud utile, on le garde
-    	
-    	for(int i=0; i<curr.kids.size(); i++){
-    		if ((curr.value + curr.kids.get(i).getVal())>0){		//si une valeure a descendre 
-    			NodeDD nouveau = new NodeDD(curr.kids.get(i).fils, curr.kids.get(i), (curr.value + curr.kids.get(i).getVal()) );	// on en cree un nouveau, avec la nouvelle valeure en plus. le nouveau remplace l'ancien dans l'arc
-    			
-    			//test si deja existant
-    			int existeDeja=ut.recherche(nouveau);
-    			if(existeDeja!=-1){			//alors il exite deja
-    				nouveau=ut.get(nouveau.variable, existeDeja);
-    				curr.kids.get(i).changerFils(nouveau);
-    			}else{
-    				ut.add(nouveau);
-    			}
-    		}											
-    		
-			curr.kids.get(i).setVal(0);					//plus de valeur sur l'arc
-			
-			//if (!curr.kids.get(i).fils.isLeaf()){
-			//	descendreValeurs(curr.kids.get(i).fils);		// la suite !
-			}
-    	for(int i=0; i<curr.kids.size(); i++){
-    		if (!curr.kids.get(i).fils.isLeaf()){
-    			combDown(curr.kids.get(i).fils);
-    		}else{
-    			curr.kids.get(i).fils.cpt=0;
-    		}
-    	}
-    		
-    	curr.value=0;
-    	
-    }*/
-    
     // attention si poids negatifs : conflits sur cpt (cpt:indicateur, cpt=-1:suppression)
     //recursif descend les valeurs sur les feuilles finales (gestion des arcs)
 
@@ -491,214 +397,6 @@ uht.detect();
     
     
 
-/*    public void addToSlddMult(){
-    	flagPlus=false;
-    	flagMult=true;
-    	
-    	//remonter les valeurs finales sur les arcs
-    	for(int i=0; i<ut.get(0).size(); i++){
-    		for(int j=0; j<ut.get(0, i).fathers.size(); j++){
-    			ut.get(0, i).fathers.get(j).coef=ut.get(0, i).value;
-    		}
-			ut.get(0, i).value=1;
-    	}
-    	
-    	comb();
-    }
-    */
-    //recursif introduit des coefficients multiplicateurs. valeurs normalisés
-/*    public void recurSlddToAadd(NodeDD curr){
-    	curr.cpt=1;
-    	double max=-1000000;
-    	double min= 1000000;
-    	double range=0;
-    	
-    	if(!curr.isLeaf()){
-			
-			for(int i=0; i<curr.kids.size(); i++){
-				if(curr.kids.get(i).fils.cpt==0)
-					recurSlddToAadd(curr.kids.get(i).fils);
-			}
-
-			for(int i=0; i<curr.kids.size(); i++){
-				if (curr.kids.get(i).bottom==0 &&
-					curr.kids.get(i).getVal()+curr.kids.get(i).getCoef()>max)  {
-						max=curr.kids.get(i).getVal() + curr.kids.get(i).getCoef();		// max prend la plus grande somme v/d,n/d
-				}
-				
-				if (curr.kids.get(i).bottom==0 &&
-					curr.kids.get(i).getVal()<min ){
-							min=curr.kids.get(i).getVal();
-					   }
-			}
-			
-			if(max!=-1000000 && min!=1000000){
-				range=max-min;
-				
-				for(int i=0; i<curr.kids.size(); i++){
-					curr.kids.get(i).addVal(-min);				//on soustrait le min a tous
-					curr.kids.get(i).divVal(range);		//on divise les deux par range
-					curr.kids.get(i).divCoef(range);
-				}
-				
-				min*=range;		//on va tout additionner par (min*range), donc la c'est fait !!
-				for(int i=0; i<curr.fathers.size(); i++){
-					curr.fathers.get(i).addVal(min);			//on soustrait le min a tous
-					curr.fathers.get(i).multCoef(range);
-				}
-				
-				
-			}else{
-				System.out.println("err@VDD : neud dont tous les fils valent 0");
-			}
-
-    	}
-    	
-    }*/
-    
-    //reduction (ne supprime pas les neuds innutiles
-/*    public void contract(){
-    	//toremove
-    	//ut.cptTo(0);
-    	
-    	//on on arrondi si on est en ADD
-    	if(!flagMult && !flagPlus){
-    		if(testplus_testtime()){	//si on est en mode +
-    			ut.addToInt();    			
-    		}
-    	}
-    	
-        ArrayList<NodeDD> liste = new ArrayList<NodeDD>();
-        NodeDD curr, comp;
-        //init
-        for(int i=0; i<ut.size(0); i++)
-        	liste.add(ut.get(0, i));
-
-
-        //debut
-        for(int var=ut.nbVariables; var>0; var--){
-
-        	for(int i=0; i<liste.size(); i++){
-                curr=liste.get(i);
-                for(int j=i+1; j<liste.size(); j++){    //test si similaires
-                    comp=liste.get(j);
-     
-                    if(curr.compare(comp)){     //si equivalents
-                        curr.fusion(comp);
-                        ut.remove(comp);	//on supprime de tabNodes
-                        liste.remove(j);									//puis de liste (optionel?)
-                        j--;                   //sinon on sautera le test du suivant :(
-                    }
-                    
-                }
-            }
-            
-            //mise a jours de la liste
-            liste.clear();
-            for(int i=0; i<ut.size(var); i++)
-            	liste.add(ut.get(var, i));
-        }
-        //rechercheNoeudInutile();    //bien fait cette bande de PARASITES !!!!
-
-        //on suprime tous les neuds inutiles
-        ut.supprNeudNegatifs();
-        ut.cptTo(0);
-    }*/
-    
-/*    //reduction (ne supprime pas les neuds innutiles
-    //(2) s'assure qu'il n'y a pas une copie qui pointe vers lui
-    public void contract2(int start){
-    	//toremove
-    	ut.cptTo(0);
-    	
-    	//on on arrondi si on est en ADD
-    	if(!flagMult && !flagPlus){
-    		if(testplus_testtime()){	//si on est en mode +
-    			ut.addToInt();    			
-    		}
-    	}
-    	
-        ArrayList<NodeDD> liste = new ArrayList<NodeDD>();
-        NodeDD curr, comp;
-        //init
-        for(int i=0; i<ut.size(0); i++)
-        	liste.add(ut.get(0, i));
-
-
-        //debut
-        for(int var=start; var>0; var--){
-
-        	for(int i=0; i<liste.size(); i++){
-                curr=liste.get(i);
-                for(int j=i+1; j<liste.size(); j++){    //test si similaires
-                    comp=liste.get(j);
-     
-                    if(curr.compare(comp)){     //si equivalents
-                        curr.fusion(comp);
-                        comp.cpt=1;
-                        for(int k=0; k<ut.size(var); k++){
-                        	for(int l=0; l<ut.get(var, k).copie.size(); l++){
-                        		if(ut.get(var, k).copie.get(l).cpt==1){
-                        			ut.get(var, k).copie.set(l, curr);
-                        			System.out.println("plop");
-                        		}
-                        	}
-                        }
-                        ut.cptTo(0);
-                        ut.remove(comp);	//on supprime de tabNodes
-                        liste.remove(j);									//puis de liste (optionel?)
-                        j--;                   //sinon on sautera le test du suivant :(
-                    }
-                    
-                }
-            }
-            
-            //mise a jours de la liste
-            liste.clear();
-            for(int i=0; i<ut.size(var); i++)
-            	liste.add(ut.get(var, i));
-        }
-        //rechercheNoeudInutile();    //bien fait cette bande de PARASITES !!!!
-
-        //on suprime tous les neuds inutiles
-        ut.supprNeudNegatifs();
-        //ut.cptTo(0);
-    }*/
-    
-/*    public void ajoutDefaultCost(double[] constraint, double defaultCost, boolean softConstraint){
-    	// get last variable
-    	int lastvariable=0;
-    	if( !softConstraint ||
-    		(( defaultCost!=0 && !flagOperateurPrincipalMultiplication) ||
-    	   // ( defaultCost!=1 && flagOperateurPrincipalMultiplication) ) ){
-    		( false ) ) ){
-    		for(int i=(constraint.length-1); i>0; i--){
-    			if(constraint[i]!=-1){
-    				lastvariable=i;
-    				break;
-    			}
-    		}
-    	
-	    	ArrayList<NodeDD> liste;
-	    	liste=uht.get(lastvariable);
-	    	
-	    	for(int i=0; i<liste.size(); i++){
-	    		for(int j=0; j<liste.get(i).kids.size(); j++){
-	    			if(!softConstraint)
-	    				liste.get(i).kids.get(j).bottom+=1;			//on increment le bottom, si il etait deja a 1, il reviendra pas a zero
-	    			else{
-	    				if(!flagOperateurPrincipalMultiplication)	//cas de l'adition en operateur principale du fichier d'entree
-	    					liste.get(i).kids.get(j).addVal(defaultCost);
-	    				else{										//cas de la multiplication...
-	    					liste.get(i).kids.get(j).multCoef(defaultCost);
-	    				}
-	    			}
-	    		}
-	    	}
-    	
-    	}
-    }*/
-    
     
     //recursif (voir l'autre fonction du meme nom)
     public void valeurCheminRecursif(Arc arc, VarPoidsId data, boolean softConstraint, boolean conflictsConstraint, Structure defaultCost){    	  	
@@ -857,13 +555,13 @@ uht.detect();
     }
     
     //permet de rentrer un poid specifique a un chemin
-    // [ poid0, contrainte0..]
-    // [ poid1, contrainte1..]
+    // [contrainte0..]
+    // [contrainte1..]
     public void valeurChemin(int[][] var, Structure[] poids, Structure defaultCost, boolean softConstraint, boolean conflictsConstraint){
     //cout par defaut//
     	
     	int firstC=-1;
-    	for(int i=1; i<var[0].length; i++){
+    	for(int i=0; i<var[0].length; i++){
     		if(var[0][i]!=-1){
     			firstC=i;
     			break;
@@ -894,7 +592,7 @@ uht.detect();
     		//}else{
     		//	fathers=new NodeDD[0];
     		//}
-    		if(firstC!=1){
+    		if(firstC!=0){
     			fathers=uht.get(firstC-1);
     		}else{
     			fathers=new ArrayList<NodeDD>();
@@ -948,46 +646,6 @@ uht.detect();
 		
     }
 
-//operateurs
-    
-    //operation addition, fction recursive
-/*	public void add(NodeDD curr, NodeDD n, Arc a){
-		if(curr.isLeaf()){							//cas feuille
-			a.changerFils(n);
-			a.addVal(curr.value);
-			
-			if(curr.fathers.size()==0){		//neud orphelin, a supprimer
-				curr.cpt=-1;				
-			}
-		}else{
-			if(curr.cpt!=0){			//arc non deja vu!
-										//cas pas feuille
-				if(curr.cpt==curr.fathers.size() || curr.fathers.size()==0){	//pas de souci (cas normal) || premier de liste		//a supprimer des que arc premier ajoute
-					curr.cpt=0;
-					for(int i=0; i<curr.kids.size(); i++)
-						this.add(curr.kids.get(i).fils, n, curr.kids.get(i));		//on continue sur chaque fils
-					
-				}else{								//cas pas normal
-					if(curr.copie==null){			//mais on y est pas encor passe
-						NodeDD x=new NodeDD(curr, a, 0);		//copie conforme
-						ut.add(x);
-						curr.copie=x;								//on part pas sans laisser d'adresse
-						
-						a.changerFils(curr.copie);
-						curr.cpt--;
-						
-						for(int i=0; i<x.kids.size(); i++)
-							this.add(x.kids.get(i).fils, n, x.kids.get(i));		//on continue sur chaque fils de x
-					}else{
-						a.changerFils(curr.copie);
-						curr.cpt--;
-					}
-					
-				}
-			}
-		}
-	}
-    */
 	
 	//compte le nombre de passage dans chaques neud
 	//resultat dans les cpt
@@ -997,8 +655,8 @@ uht.detect();
     		first.fils.counting=1;
     	}
     	
-    	for(int i=0; i<uht.get(0).size(); i++){
-    		res+=counting(uht.get(0).get(i));
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		res+=counting(uht.getLast().get(i));
     	}
     	
     	uht.countingToMoinsUn();
@@ -1030,8 +688,8 @@ uht.detect();
     		first.fils.pondere=(int)first.s.getvaldouble();
     	}
     	
-    	for(int i=0; i<uht.get(0).size(); i++){
-    		res+=countingpondere(uht.get(0).get(i));
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		res+=countingpondere(uht.getLast().get(i));
     	}
     	
     	uht.countingToMoinsUn();
@@ -1066,8 +724,8 @@ uht.detect();
     	
     	conditioner(var, v);
     	
-    	for(int i=0; i<uht.get(0).size(); i++){
-    		res+=countingpondere(uht.get(0).get(i));
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		res+=countingpondere(uht.getLast().get(i));
     	}
     	
     	deconditioner(var);
@@ -1082,8 +740,8 @@ uht.detect();
     	int res=0;
     	conditioner(var, v);
     	
-    	for(int i=0; i<uht.get(0).size(); i++){
-    		res+=countingpondere(uht.get(0).get(i));
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		res+=countingpondere(uht.getLast().get(i));
     	}
     	
     	deconditioner(var);
@@ -1101,8 +759,8 @@ uht.detect();
     	if(first.actif && first.bottom==0)
     		first.fils.counting=1;
     	
-    	for(int i=0; i<uht.get(0).size(); i++){
-    		total+=countingpondere(uht.get(0).get(i));
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		total+=countingpondere(uht.getLast().get(i));
     	}
     	    	
     	dom=var.domain;
@@ -1127,8 +785,8 @@ uht.detect();
     	if(first.actif && first.bottom==0)
     		first.fils.counting=1;
     	
-    	for(int i=0; i<uht.get(0).size(); i++){
-    		total+=countingpondere(uht.get(0).get(i));
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		total+=countingpondere(uht.getLast().get(i));
     	}
     	 
     	// Si le cas n'est pas trouvé, alors on renvoie une équiprobabilité
@@ -1165,8 +823,8 @@ uht.detect();
     		first.fils.inference=first.s.getvaldouble();
     	}
     	
-    	for(int i=0; i<uht.get(0).size(); i++){
-    		double inference = inference(uht.get(0).get(i));
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		double inference = inference(uht.getLast().get(i));
 //    		System.out.println(inference);
     		res+=inference;
     	}
@@ -1205,8 +863,8 @@ uht.detect();
     	
     	conditioner(var, v);
     	
-    	for(int i=0; i<uht.get(0).size(); i++){
-    		res+=inference(uht.get(0).get(i));
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		res+=inference(uht.getLast().get(i));
     	}
     	
     	deconditioner(var);
@@ -1221,8 +879,8 @@ uht.detect();
     	double res=0;
     	conditioner(var, v);
     	
-    	for(int i=0; i<uht.get(0).size(); i++){
-    		res+=inference(uht.get(0).get(i));
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		res+=inference(uht.getLast().get(i));
     	}
     	
     	deconditioner(var);
@@ -1242,8 +900,8 @@ uht.detect();
     	}
 
     	
-    	for(int i=0; i<uht.get(0).size(); i++){
-    		inference(uht.get(0).get(i));
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		inference(uht.getLast().get(i));
     	}
 
 //    	System.out.println("total: "+total);
@@ -1271,8 +929,8 @@ uht.detect();
     	}
 
     	
-    	for(int i=0; i<uht.get(0).size(); i++){
-    		inference(uht.get(0).get(i));
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		inference(uht.getLast().get(i));
     	}
 
 //    	System.out.println("total: "+total);
@@ -1380,31 +1038,6 @@ uht.detect();
 		}
 	}
 
-	/*
-	//ameliorable
-	public double mostchoosen(int var){
-		
-		
-		double max=-1;
-		int indmax=-1;
-		double val;
-		for(int i=0; i<variables.get(var-1).domain; i++){
-			this.deconditioner(var);
-			this.conditioner(var, i);
-			
-			//val=this.countingpondere();
-			val=this.countingpondere();
-			if(val>max){
-				max=val;
-				indmax=i;
-			}
-			System.out.println("i:" + i + "  val:" + val);
-		}
-		deconditioner(var);
-		
-		
-		return 0;
-	}*/
 	
 	public void minMaxConsistance(){
 		for(int i=0; i<variables.size(); i++)
@@ -1438,7 +1071,7 @@ uht.detect();
 //		end=System.currentTimeMillis();
 //		System.out.println("------> :  " + (end-start) + "ms");
 		
-		min=uht.get(0).get(0).min.copie();
+		min=uht.getLast().get(0).min.copie();
 		max=first.s.copie();
 		max.operation(first.fils.max);
 		if(min.printstr().compareTo("Spt")==0){
@@ -1464,7 +1097,7 @@ uht.detect();
 	
 	public void minMaxConsistanceMaj(int var, boolean cd){
 		//for(int i=0; i<variables.size(); i++)
-			variables.get(var-1).consValTofalse();
+			variables.get(var).consValTofalse();
 		
 		min.rendreInaccessible();
 		max.rendreInaccessible();
@@ -1478,7 +1111,7 @@ uht.detect();
 //		end=System.currentTimeMillis();
 //		System.out.println("------> :  " + (end-start) + "ms");
 		
-		min=uht.get(0).get(0).min.copie();
+		min=uht.getLast().get(0).min.copie();
 		max=first.s.copie();
 		max.operation(first.fils.max);
 		if(min.printstr().compareTo("Spt")==0){
@@ -1500,7 +1133,7 @@ uht.detect();
 				
 //		end=System.currentTimeMillis();
 //		System.out.println("------> :  " + (end-start) + "ms");
-		min=uht.get(0).get(0).min.copie();
+		min=uht.getLast().get(0).min.copie();
 		max=first.s.copie();
 		max.operation(first.fils.max);
 		if(min.printstr().compareTo("Spt")==0){
@@ -1524,7 +1157,7 @@ uht.detect();
 		int pos=-1;
 		NodeDD n;
 		
-		n=uht.get(0).get(0);
+		n=uht.getLast().get(0);
 		
 		while(n!=null){
 			ind=n.posMin;
@@ -1558,7 +1191,7 @@ uht.detect();
 		ArrayList<NodeDD> liste;
 		uht.minDomainVariable(var);
 		liste=uht.get(var);
-		int[] minDom=new int[this.variables.get(var-1).domain];
+		int[] minDom=new int[this.variables.get(var).domain];
 		for(int i=0; i<minDom.length; i++){
 			minDom[i]=2147483647;
 		}
@@ -1576,13 +1209,8 @@ uht.detect();
 			
 		for(int i=0; i<minDom.length; i++){
 			if(minDom[i]!=2147483647)
-				m.put(variables.get(var-1).valeurs.get(i), minDom[i]);
-			//else
-				//m.put(variables.get(var-1).valeurs.get(i), -1);
+				m.put(variables.get(var).valeurs.get(i), minDom[i]);
 		}
-//		for(int i=0; i<minDom.length; i++){
-//			System.out.print(maxDom[i]+" ");
-//		}
 		
 		uht.minMaxConsistance();
 
@@ -1594,7 +1222,7 @@ uht.detect();
 		ArrayList<NodeDD> liste;
 		uht.maxDomainVariable(var);
 		liste=uht.get(var);
-		int[] maxDom=new int[this.variables.get(var-1).domain];
+		int[] maxDom=new int[this.variables.get(var).domain];
 		for(int i=0; i<maxDom.length; i++){
 			maxDom[i]=-1;
 		}
@@ -1612,7 +1240,7 @@ uht.detect();
 			
 		for(int i=0; i<maxDom.length; i++){
 			if(maxDom[i]!=-1)
-				m.put(variables.get(var-1).valeurs.get(i), maxDom[i]);
+				m.put(variables.get(var).valeurs.get(i), maxDom[i]);
 		}
 //		for(int i=0; i<minDom.length; i++){
 //			System.out.print(maxDom[i]+" ");
@@ -1635,7 +1263,7 @@ uht.detect();
 		for(int i=0; i<variables.size(); i++)
 			if(variables.get(i).consistenceSize()>1){
 				variables.get(i).consValTofalse();
-				uht.GIC(i+1);
+				uht.GIC(i);
 			}
 	}
 	
@@ -1644,7 +1272,7 @@ uht.detect();
 		for(int i=0; i<variables.size(); i++)
 			if(!variables.get(i).consistenceFull()){
 				variables.get(i).consValTofalse();
-				uht.GIC(i+1);
+				uht.GIC(i);
 			}
 	}
 	
@@ -1738,7 +1366,7 @@ uht.detect();
     	System.out.println();
     	listP.add(first.fils);
     	
-    	this.add(a, b, listP, 1);
+    	this.add(a, b, listP, 0);
     	    	
     	uht.copieToNull();
     	uht.normaliser();   	
@@ -1909,31 +1537,6 @@ uht.detect();
     	
     }
     
-	//fusion de deux VDD dont la premiere variable est concatennée
-/*	public void fusion (VDD vdd2){
-		for(int i=0; i<first.fils.variable.domain; i++){
-			if(first.fils.kids.get(i).bottom>0)	{					//si il a été cuté
-				if(vdd2.first.fils.kids.get(i).bottom==0){			//mais pas sur vdd2
-					vdd2.first.fils.kids.get(i).changerPere(this.first.fils.kids.get(i));
-				}
-			}
-		}
-	}*/
-	
-	//test si notre ADD doit plutot etre transphorme en SLDD+ ou SLDD*
-	//true -> SLDD+
-	//false -> SLDD*
-/*	public boolean testplus_testtime(){
-		double moy=0;
-		int size=ut.get(0).size();
-		for(int i=0; i<size; i++){
-			moy+=(ut.get(0).get(i).value/size);
-		}
-		if(moy>1)
-			return true;
-		else
-			return false;
-	}*/
 	
 //accesseurs
     
@@ -1942,30 +1545,6 @@ uht.detect();
 	}
 
 //afficheurs
-	/*
-    void plot(LddNode*, int);       // affichage de l'arbre depuis le neud (recursif)
-    void plot();                    // affichage de l'arbre depuis la racine
-
-    void plotVector();              // affichage du detail de l'ensemble des neuds
-
-    void addToDot(string); // affichage en dot (passage par fichier)
-    void slddToDot(string);
-    */
-    
-/*    public String toString(){
-    	ut.giveIndex();
-    	
-    	String s="";	
-	 
-	    	//nodes
-    	for(int i=0; i<ut.nbVariables+1; i++)
-	    	for(int j=0; j<ut.size(i); j++){
-	    		//name label form
-	    		s+=ut.get(i, j).toString();		//true non definitif (binary only)
-	    	}
-	    	
-	    	return s;
-    }*/
     
     public void toDot(String nameGraph, boolean afficheGraph){
     	
@@ -2015,7 +1594,7 @@ uht.detect();
 	    	
 	    	//nodes
     		ArrayList<NodeDD> l;
-    		for(int i=0; i<uht.nbVariables+1; i++){
+    		for(int i=0; i<uht.nbVariables; i++){
     			l=uht.get(i);
 		    	for(int j=0; j<l.size(); j++){
 		    		//name label form
@@ -2023,6 +1602,14 @@ uht.detect();
 		    		fW.write(s);
 		    	}
 	    	}
+    		
+    		//last
+			l=uht.getLast();
+	    	for(int j=0; j<l.size(); j++){
+	    		//name label form
+	    		s=l.get(j).toDot();		//true non definitif (binary only)
+	    		fW.write(s);
+	    	}
     	
     		
     		/*for(int i=0; i<uht.nbVariables+1; i++)
@@ -2050,156 +1637,7 @@ uht.detect();
 		}
     }
     
-    public void toDotRecuIntro(String nameGraph, boolean afficheGraph){
-    	
-    	FileWriter fW;
-//    	File f;
-    	
-    	String s;
-
-		//fichier
-    	if(nameGraph.endsWith(".dot"))
-    		nameGraph=nameGraph.substring(0, nameGraph.length()-4);
-    	
-		String name_file= "./" + nameGraph + ".dot";
-		String name_pdf= "./" + nameGraph + ".pdf";
-		try{
-			fW = new FileWriter(name_file);
-		
-			//entete comenté
-			if(flagPlus)
-				if(flagMult)
-					s="//AADD\n";
-				else
-					s="//SLDDp\n";
-			else
-				if(flagMult)
-					s="//SLDDt\n";
-				else
-					s="//ADD\n";
-			fW.write(s);
-			
-			for(int i=0; i<variables.size(); i++){
-				s="// "+i+" "+variables.get(i).name;
-				for(int j=0; j<variables.get(i).domain; j++)
-					s+=" " + variables.get(i).valeurs.get(j);
-				s+="\n";
-				fW.write(s);
-			}
-				
-			
-	    	//entete
-	    	s="digraph "+nameGraph+" {\n";
-	    	fW.write(s);
-	    	
-	    	//first arc
-	    	s=first.toDot();
-    		fW.write(s);
-	    	
-    		s=last.toDot();
-    		fW.write(s);
-
-	    	//nodes
-    		if(first.fils!=null)
-    			toDotRecu(first.fils, fW);
-    		
-    		ArrayList<NodeDD> l;
-    		l=uht.get(variables.size());
-    		for(int j=0; j<l.size(); j++){
-    			toDotRecu(l.get(j), fW);
-    		}
-    		
-    		
-    		this.countingtomoinsunR();
-        	
-    		//ArrayList<NodeDD> l;
-    		//for(int i=0; i<uht.nbVariables+1; i++){
-    		//	l=uht.get(i);
-		  //  	for(int j=0; j<l.size(); j++){
-		  //  		//name label form
-		  //  		s=l.get(j).toDot();		//true non definitif (binary only)
-		   // 		fW.write(s);
-		   // 	}
-	    	//}
-    	
-    		
-    		/*for(int i=0; i<uht.nbVariables+1; i++)
-		    	for(int j=0; j<uht.size(i); j++){
-		    		//name label form
-		    		s=uht.get(i).get(j).toDot();		//true non definitif (binary only)
-		    		fW.write(s);
-		    	}
-	    	*/
-	    	s="}\n";
-	    	fW.write(s);
-	    	
-	    	fW.close(); 
-    	
-		}catch(java.io.IOException exc){System.out.println("pb de fichier: " + exc);}
-    	uht.cptTo(0);
-
-		if(afficheGraph){
-			try {	//creation pdf
-				Runtime.getRuntime().exec("/usr/bin/dot dot -Tpdf " + name_file + " -o " + name_pdf);
-			} catch (java.io.IOException exc) {System.out.println("pb de creation pdf: " + exc); }
-	
-			try {	//ouverture pdf
-				Runtime.getRuntime().exec("/usr/bin/evince evince " + name_pdf);
-			} catch (java.io.IOException exc) {System.out.println("pb d'ouverture pdf: " + exc); }
-		}
-    }
     
-    public void toDotRecu(NodeDD n, FileWriter fW){
-    	String s;
-    	if(n.counting!=500){
-        	
-	    	NodeDD n2;
-	    	
-	    	for(int i=0; i<n.kids.size(); i++){
-	    		n2=n.kids.get(i).fils;
-	    		//System.out.println(n2.id+" "+n2.kids.size());
-	    		if(n2!=null){
-	    			if(!n2.isLeaf()){
-	    				toDotRecu(n2, fW);
-	    			}
-	    		}
-	    	}
-	    	s=n.toDot();
-	    	
-	    	n.counting=500;
-	    	try {
-				fW.write(s);
-			} catch (Exception e) {
-				System.out.println("aie");// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-    	}
-
-    }
-    
-    public void toDotRecu2(NodeDD n, FileWriter fW){
-    	String s;
-    	if(n.counting!=500){
-        	
-	    	NodeDD n2;
-	    	
-	    	for(int i=0; i<n.fathers.size(); i++){
-	    		n2=n.fathers.get(i).pere;
-	    		if(n2!=null){
-	    			toDotRecu2(n2, fW);
-	    		}
-	    	}
-	    	s=n.toDot();
-	    	n.counting=500;
-	    	try {
-				fW.write(s);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-    	}
-
-    }
     
     public void affichageResultats(int arg_text, long start_time){
     	if(arg_text>=1){
@@ -2421,7 +1859,7 @@ uht.detect();
 			s="\t<automate nbNiv=\""+ this.variables.size() +"\" type=\"slddplus\" offset=\""+ first.s.toTxt() +"\" root=\"q"+first.fils.id+"\" sink=\"q"+last.id+"\" ordered=\"true\">\n";
 			fW.write(s);
 			
-			for(int i=1; i<this.variables.size()+1; i++){
+			for(int i=0; i<this.variables.size(); i++){
 				//2 niveau
 				s="\t\t<niveau variable=\""+ this.variables.get(i-1).name +"\" nbNoeuds=\""+uht.size(i)+"\" nbTransitions=\""+uht.sizeArcs(i)+"\">\n";
 				fW.write(s);
@@ -2469,7 +1907,7 @@ uht.detect();
     	newVDD.first.changerFils(n);
     	
     	
-    	for(int i=2; i<=variables.size(); i++){
+    	for(int i=1; i<variables.size(); i++){
     		lf1=uht.get(i);
     		for(int j=0; j<lf1.size(); j++)
     			lf2.add(new NodeDD(lf1.get(j).variable, lf1.get(j).id));
