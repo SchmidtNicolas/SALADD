@@ -34,6 +34,7 @@ public class NodeDD{
 	
 	protected int cpt;
 	protected long counting=-1;
+	protected long counting2=-1;
 	protected int pondere=0;
 	protected double inference=0;
 

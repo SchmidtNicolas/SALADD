@@ -44,7 +44,7 @@ public class HeuristiqueContraintesDurete implements HeuristiqueContraintes {
 				score[i]=cn.getCons(i).nbTuples;
 				proddomain=1;
 				for(int j=0; j<cn.getCons(i).arity; j++)
-					proddomain*=var.get(cn.getCons(i).scopeID.get(j)).domain;
+					proddomain*=cn.getCons(i).scopeVar.get(j).domain;
 				
 				score[i]=score[i]/proddomain;
 			}

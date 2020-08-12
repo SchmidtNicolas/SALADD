@@ -30,6 +30,7 @@ public class Arc {
 	protected boolean actif=true;
 	
 	protected int bottom=0;
+	public long passage1 = 0;
 
 	
 		// constructeur
@@ -415,8 +416,16 @@ public class Arc {
 					}else{																//cas normal
 						s+="n" + pere.id + " -> n" + fils.id + " [pos="+pos;
 					}
+					//print witch son it is
+					s+=", label=\"";
+					if(this.pere!=null) {
+						Var v=this.pere.variable;
+						s+=v.name+"="+v.valeurs.get(pos)+"\\n";
+					}
+					
 					if(!this.s.isNeutre())
-						s+=", label=" + this.s.toDot();
+						s+= this.s.toDot();
+					s+="\"";
 					if(pos==0)
 						s+= ", style=dotted";
 					if(pos==(this.pere.variable.domain-1))
@@ -435,7 +444,7 @@ public class Arc {
 	}
 	
 	
-	public String toDot2(){
+	public String toDot2_(){
 		String s="";
 		
 		if(bottom==0){

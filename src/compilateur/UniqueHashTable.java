@@ -493,6 +493,7 @@ public class UniqueHashTable {
 			while(eN.hasNext()){
 				temp=eN.next();
 				temp.counting=-1;
+				temp.counting2=-1;
 				temp.pondere=0;
 				temp.inference=0;
 			}
@@ -569,12 +570,12 @@ public class UniqueHashTable {
 			}
 		}
 		
-		this.get(0).get(0).minMaxConsistance1();
+		this.getLast().get(0).minMaxConsistance1();
 		//this.get(0).get(0).min.toNeutre();
-		this.get(0).get(0).max.toNeutre();
+		this.getLast().get(0).max.toNeutre();
 		
 		
-		for(int i=uniqueHashTable.length-1; i>0; i--){
+		for(int i=uniqueHashTable.length-1; i>=0; i--){
 			eN=uniqueHashTable[i].values().iterator();
 			while(eN.hasNext()){
 				eN.next().minMaxConsistance2();
@@ -627,9 +628,9 @@ public class UniqueHashTable {
 				eN.next().minMaxConsistance2Maj(cd);
 		}
 		
-		for(int i=var-1; i>0; i--){
+		for(int i=var-1; i>=0; i--){
 		//for(int i=uniqueHashTable.length-1; i>0; i--){
-			if(next){
+			if(next && !uniqueHashTable[i].isEmpty()){
 				next=false;
 				eN=uniqueHashTable[i].values().iterator();
 				temp=eN.next();
@@ -1601,7 +1602,7 @@ public class UniqueHashTable {
 		for (int i=0; i<nbVariables; i++){
 			v=this.get(i).get(0).variable;
 			if(!cn.isVariableUtile(v)){
-				this.courtcircuit(this.get(i+1).get(0));
+				this.courtcircuit(this.get(i).get(0));
 			}
 		}
 	}

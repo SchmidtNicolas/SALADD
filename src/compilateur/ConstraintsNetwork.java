@@ -10,6 +10,7 @@ import compilateur.heuristique_variable.HeuristiqueVariable;
 public class ConstraintsNetwork {
 	private ArrayList<Constraint> constraints;
 	private ArrayList<Var> vars;
+
 	public int nbVariables;
 	public int nbConstraints;
 	
@@ -17,10 +18,15 @@ public class ConstraintsNetwork {
 	public ArrayList<ArrayList<Integer>> graphAdjConsVar;
 	public ArrayList<Integer> OccurenceVariableDansContraintes;		//nombre de contraintes pour chaque variable
 
+	private ArrayList<Constraint> removedConstraints;
+	private ArrayList<Var> removedVars;
+
 	
 	public ConstraintsNetwork() {
 		constraints=new ArrayList<Constraint>();
 		vars=new ArrayList<Var>();
+		removedConstraints=new ArrayList<Constraint>();
+		removedVars=new ArrayList<Var>();
 		graphAdjVarVar=null;
 		graphAdjConsVar=new ArrayList<ArrayList<Integer>>();
 		OccurenceVariableDansContraintes = new ArrayList<Integer>();
@@ -115,7 +121,7 @@ public int[][] getFullCons(int num) {
 		for(int j=0; j<nbVariables; j++) {
 			fullCons[i][j]=-1;	//default value
 			for(int k=0; k<constraints.get(num).arity; k++) {
-				if(getVar(constraints.get(num).scopeID.get(k)).pos==j) {
+				if(constraints.get(num).scopeVar.get(k).pos==j) {
 					fullCons[i][j]=constraints.get(num).cons.get(i).get(k);
 					break;
 				}
@@ -175,7 +181,7 @@ public void compactConstraint() {
 						   constraints.get(j).defaultCost.isNeutre() && constraints.get(i).defaultCost.isNeutre()) {
 
 							for(int k=0; k<constraints.get(i).arity; k++){
-								if(constraints.get(i).scopeID.get(k)!=constraints.get(j).scopeID.get(k)){
+								if(constraints.get(i).scopeVar.get(k).id!=constraints.get(j).scopeVar.get(k).id){
 									egal=false;
 									break;
 								}
@@ -214,8 +220,8 @@ public boolean isVariableUtile(Var v, int s, int e){
 	//System.out.println(v.name);
 	for(int i=s; i<e; i++){
 		if(constraints.get(i)!=null){
-			for(int j=0; j<constraints.get(i).scopeID.size(); j++){
-				if(constraints.get(i).scopeID.get(j)==v.id)
+			for(int j=0; j<constraints.get(i).scopeVar.size(); j++){
+				if(constraints.get(i).scopeVar.get(j).id==v.id && constraints.get(i).involved==-1)
 					return true;
 			}
 		}
@@ -227,8 +233,8 @@ public boolean isVariableUtile(Var v, int s, int e){
 public boolean isVariableUtile(Var v){
 	for(int i=0; i<constraints.size(); i++){
 		if(constraints.get(i)!=null){
-			for(int j=0; j<constraints.get(i).scopeID.size(); j++){
-				if(constraints.get(i).scopeID.get(j)==v.id)
+			for(int j=0; j<constraints.get(i).scopeVar.size(); j++){
+				if(constraints.get(i).scopeVar.get(j).id==v.id && constraints.get(i).involved==-1)
 					return true;
 			}
 		}
@@ -237,21 +243,43 @@ public boolean isVariableUtile(Var v){
 	return false;	
 }
 
+public void removeUselessVariables() {
+	
+	
+	for(int i=0; i<vars.size(); i++) {
+		if(!isVariableUtile(vars.get(i))) {
+			removedVars.add(vars.get(i));
+			vars.remove(i);
+			i--;
+		}
+	}
+	
+	//update pos
+	for(int currPos=0; currPos<vars.size(); currPos++) {
+		vars.get(currPos).pos=currPos;
+		vars.get(currPos).id=currPos;
+	}
+	
+	nbVariables=vars.size();
+}
 
 
 
 public void actualise() {
 	reorderAll();
+		
 	constructGraphAdjascenceConsVar();
 	constructGraphAdjascenceVarVar();
 	constructOccurenceVariableDansContraintes();
 }
 
 public void constructGraphAdjascenceConsVar() {
+	graphAdjConsVar.clear();
+
 	for(int i=0; i<nbConstraints; i++){
 		ArrayList<Integer> varCons = new ArrayList<Integer>();
 		for(int j=0; j<constraints.get(i).arity; j++){
-			varCons.add(constraints.get(i).scopeID.get(j));	      			
+			varCons.add(constraints.get(i).scopeVar.get(j).id);	      			
 		}
 		graphAdjConsVar.add(varCons);
 	}
@@ -260,7 +288,7 @@ public void constructGraphAdjascenceConsVar() {
 public void constructGraphAdjascenceVarVar() {
 	
 	//init
-	graphAdjVarVar=new int[nbVariables][nbVariables];
+	graphAdjVarVar=new int[vars.size()][nbVariables];
 	for(int i=0; i<nbVariables; i++) {
 		for(int j=0; j<nbVariables; j++) {
 			graphAdjVarVar[i][j]=0;
@@ -283,13 +311,14 @@ public void constructGraphAdjascenceVarVar() {
 }
 
 public void constructOccurenceVariableDansContraintes() {
+	OccurenceVariableDansContraintes.clear();
 	int varID;
 	for(int i=0; i<nbVariables; i++)
 		OccurenceVariableDansContraintes.add(0);
 	
 	for(int i=0; i<nbConstraints; i++){
 		for(int j=0; j<constraints.get(i).arity; j++){
-			varID=constraints.get(i).scopeID.get(j);
+			varID=constraints.get(i).scopeVar.get(j).id;
 			OccurenceVariableDansContraintes.set(varID, OccurenceVariableDansContraintes.get(varID)+1);	      			
 		}
 	}
@@ -332,12 +361,12 @@ public void graphAdjascenceDot(String s, boolean valued, boolean hard) {
     		if((constraints.get(cpt).softConstraint && valued) || (!constraints.get(cpt).softConstraint && hard)){
 	    		if(constraints.get(cpt).arity>2) {
 		    		for(int i=0; i<constraints.get(cpt).arity; i++){
-			    		s=constraints.get(cpt).name + " -- " + vars.get(constraints.get(cpt).scopeID.get(i)).name + ";\n";
+			    		s=constraints.get(cpt).name + " -- " + constraints.get(cpt).scopeVar.get(i).name + ";\n";
 			    	    fW.write(s);
 		    		}
 	    		}else {
 	    			if(constraints.get(cpt).arity==2) {
-	    				s=vars.get(constraints.get(cpt).scopeID.get(0)).name + " -- " + vars.get(constraints.get(cpt).scopeID.get(1)).name + ";\n";
+	    				s=constraints.get(cpt).scopeVar.get(0).name + " -- " + constraints.get(cpt).scopeVar.get(1).name + ";\n";
 			    	    fW.write(s);
 	    			}
 	    		}
@@ -380,7 +409,7 @@ public void graphAdjascenceSimpleDot(String s) {
     		{
 	    		for(int j=i+1; j<constraints.get(cpt).arity; j++)
 	    		{
-	    			s=vars.get(constraints.get(cpt).scopeID.get(i)).name + " -- " + vars.get(constraints.get(cpt).scopeID.get(j)).name + ";\n";
+	    			s=constraints.get(cpt).scopeVar.get(i).name + " -- " + constraints.get(cpt).scopeVar.get(j).name + ";\n";
 	    	    	fW.write(s);
 	    		}	    			
     		}
@@ -397,7 +426,7 @@ public void graphAdjascenceSimpleDot(String s) {
 }
 
 
-//suppression des variables présentes que dans 1 contrainte
+//suppression des variables presentes que dans 1 contrainte
 public void removeSimpleVariables() {
 	boolean isUnique;
 	
@@ -408,7 +437,7 @@ public void removeSimpleVariables() {
 			outerloop:
 			for(int jC=0; jC<nbConstraints; jC++){
 	    		for(int jV=0; jV<constraints.get(jC).arity; jV++){
-	    			if(constraints.get(iC).scopeID.get(iV) == constraints.get(jC).scopeID.get(jV)) {
+	    			if(constraints.get(iC).scopeVar.get(iV).id == constraints.get(jC).scopeVar.get(jV).id) {
 	    				isUnique=false;
 	    				break outerloop;
 	    			}
@@ -420,7 +449,7 @@ public void removeSimpleVariables() {
 				constraints.get(iC).name += "_m" + iV;
 				constraints.get(iC).arity -= 1;
 				
-				constraints.get(iC).scopeID.remove(iV);
+				constraints.get(iC).scopeVar.remove(iV);
 				for(int i=iV; i<constraints.get(iC).cons.size(); i++)
 				{
 					constraints.get(iC).cons.get(i).remove(iV);
@@ -525,6 +554,42 @@ public void actualiserPosVar(ArrayList<Var> listetriee, boolean reverse) {
 	for(int i=0; i<listetriee.size(); i++) {
 			listetriee.get(i).pos=i;
 	}
+	
+}
+
+
+public void removeImplications() {
+	Constraint cI;
+	Var vb, va;
+	
+	
+	for(int i=0; i<this.nbConstraints; i++)
+		constraints.get(i).updateImplicationBinary();
+	
+	for(int i=0; i<this.nbConstraints; i++) {
+		if(constraints.get(i).involved!=-1) {
+			cI=constraints.get(i);
+			// a->b
+			vb=cI.scopeVar.get(cI.involved);
+			va=cI.scopeVar.get(cI.involving);
+			
+			for(int j=0; j<this.nbConstraints; j++) {
+				if(i!=j) {
+					constraints.get(j).replaceVariable(vb, va, cI);
+				}
+			}
+				
+		}
+	}
+	
+	for(int i=0; i<this.constraints.size(); i++) {
+		if(constraints.get(i).involved!=-1) {
+			removedConstraints.add(constraints.get(i));
+			constraints.remove(i);
+			i--;
+		}
+	}
+	nbConstraints=constraints.size();
 	
 }
 

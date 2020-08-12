@@ -251,6 +251,11 @@ public class SALADD {
 		}
 		
 		cn.actualise();
+		
+		cn.removeImplications();
+		
+		cn.removeUselessVariables();
+		
 		cn.reordoner(arg_heuristique, false);			//<---
 		
 		cn.compactConstraint();
@@ -309,7 +314,7 @@ public class SALADD {
 					//uht.detect();
 					if(arg_affich_text>=2){
 						end=System.currentTimeMillis();
-						System.out.println(i+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s " + c.name + " "+ c.computPercentOfRefusedTuples(cn.getVar()) +"%");
+						System.out.println(i+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s " + c.name + " "+ c.computPercentOfRefusedTuples() +"%");
 					}
 				}
 			}
@@ -576,6 +581,10 @@ public class SALADD {
 	 */
 	public long nb_models(){
 		return x.counting();
+	}
+	
+	public void countingValOnArc(){
+		x.countingValOnArc();
 	}
 	
 	/**
@@ -1055,6 +1064,20 @@ public class SALADD {
     	protected void infos(String var){
     		Var v=x.getVar(var);
     		x.countingpondereOnFullDomain(v);
+    	}
+    	
+    	public void updatePassage(Map<String, String> mapVarnameDom){
+    		x.updatePassage(mapVarnameDom);
+    	} 
+    	
+    	public void forgetOnlychildVariables(boolean verbose) {
+    		//forgetting
+    		ArrayList<Integer> listOnlyChild;
+    		listOnlyChild=x.getOnlyChildParents(verbose);
+    		for(int i:listOnlyChild) {
+    			x.forgetOnlyChildParents(i);
+    		}
+    		x.toDot("brut", false);
     	}
    
 }

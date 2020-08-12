@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import compilateur.*;
 
@@ -9,12 +11,12 @@ public class Main {
 
 //exemple 1 compilation
 	//compilation de un fichier unique
-	public static void main(String[] args) {
+	public static void main1(String[] args) {
 		
 		SALADD s=new SALADD();
 		
 		ArrayList<String> files=new ArrayList<>();
-		files.add("big.xml");
+		files.add("small.xml");
 		//files.add("bigPrices.xml");
 
 		//files.add("Benchmarcks\\cnf\\Handmade\\ais\\ais12d.cons");
@@ -23,9 +25,13 @@ public class Main {
 		s.compilation(files, true, 3, 0, 2);
 	
 		
-		s.suppressionNoeudsBegayants();
+		//s.suppressionNoeudsBegayants();
 		
-		s.save("big.dot");
+		
+		s.countingValOnArc();
+		
+		s.save("small.dot");
+		System.out.println(s.nb_models());
 		
 		System.out.println(s.nb_edges());
 		System.out.println(s.nb_nodes());
@@ -37,7 +43,7 @@ public class Main {
 //exemple 2 compilations 
 	//compilation de plusieurs fichier, avec sauvegarde (.dot et .xml) de la forme minimale (suppressionNoeudsBegayants)
 	// -- 
-	//chargement d'un fixhier compilé (s2) puis comparaison d'équivalence
+	//chargement d'un fixhier compile (s2) puis comparaison d'equivalence
 
 	public static void main2(String[] args) {
 		
@@ -77,7 +83,7 @@ public class Main {
 	}
 	
 	
-//exemple 3 configuration de produits, une configuration �  la fois
+//exemple 3 configuration de produits, une configuration a la fois
 
 	public static void main3(String[] args) {
 			
@@ -88,7 +94,7 @@ public class Main {
 		files.add("bigPrices.xml");
 
 		//compile et sauvegarde le problème si jamais compilé avant, le charge sinon.
-		//si déj�  en memoire, le problème est juste réinitialisé.
+		//si déj�  en memoire, le problème est juste réinitialisé.
 		s.readProblem(files);
 		
 		s.propagation();
@@ -130,7 +136,7 @@ public class Main {
 		//réinitialisation
 		s.readProblem(files);
 		s.propagation();
-		
+
 		System.out.println("cout minimal : "+s.minCost());
 		//...
 
@@ -138,7 +144,7 @@ public class Main {
 	
 	
 	
-	//exemple 4 configuration de produits, plusieurs configurations �  la fois
+	//exemple 4 configuration de produits, plusieurs configurations a  la fois
 
 		public static void main4(String[] args) {
 				
@@ -149,7 +155,7 @@ public class Main {
 			files.add("bigPrices.xml");
 
 			//compile et sauvegarde le problème si jamais compilé avant, le charge sinon.
-			//si déj�  en memoire, le problème est juste réinitialisé.
+			//si déj�  en memoire, le problème est juste réinitialisé.
 			s.readProblem(files);
 			
 			
@@ -200,8 +206,8 @@ public class Main {
 
 			
 			ArrayList<String> files=new ArrayList<>();
-			files.add("small.xml");
-			files.add("smallPrices.xml");
+			files.add("big.xml");
+			//files.add("smallPrices.xml");
 			
 			contraintes.readProblem(files);
 			
@@ -244,6 +250,122 @@ public class Main {
 			//réinitialisation
 			contraintes.reinitialisation();
 			historiques.reinitialisation();
+			
+		}
+		
+		//exemple 1 compilation
+		//compilation de un fichier unique
+		public static void main(String[] args) {
+			
+			SALADD s=new SALADD();
+			
+			ArrayList<String> files=new ArrayList<>();
+			files.add("small.xml");
+			files.add("smallPrices.xml");
+
+			//files.add("Benchmarcks\\cnf\\Handmade\\ais\\ais12d.cons");
+			
+			//big.xml et bigPrices.xml; nature additive; heuristique numero 4; heuristique de contraintes numero 2; affichage de texte niveau 2 sur 3
+			s.compilation(files, true, 3, 2, 2);
+			s.save("s.dot");
+			
+			//s.suppressionNoeudsBegayants();
+			s.forgetOnlychildVariables(true);
+			s.save("s2.dot");
+
+			
+			
+			System.out.println(s.nb_nodes() + " noeuds et "+ s.nb_edges() + " arcs ("+s.nb_models()+"models)");
+
+			System.out.println(s.nb_models());
+
+			
+			
+			Map<String, String> configurationClient1;
+
+			Set<String> setStr;
+			Set<String> minSetStr = new HashSet<String>();
+			String currVar="";
+			String currDom="";
+			boolean atmincost=false;
+			Map<String, Integer> costConf;
+			int min;
+			
+			/*for(int cpt=0; cpt<5000; cpt++) {
+				if(cpt%10==0)
+					System.out.println(cpt);
+				
+				atmincost = false;
+				int tirage;
+				int i=0;
+				
+				
+				s.propagation();
+				
+				setStr=s.getFreeVariables();
+				
+				while(setStr.size()>0) {
+					
+					tirage = (int) (Math.random()*setStr.size());
+					i=0;
+					for(String str:setStr) {
+						if (i==tirage) {
+							currVar=str;
+							break;
+						}
+						i++;
+					}
+					
+					setStr=s.getCurrentDomainOf(currVar);
+					
+					if(atmincost) {
+						costConf=s.minCosts(currVar);
+						min=9999999;
+						for(String str:setStr) {
+							if(costConf.get(str) < min) {
+								min = costConf.get(str);
+								minSetStr.clear();
+								minSetStr.add(str);
+							}else {
+								if(costConf.get(str) == min)
+									minSetStr.add(str);
+							}
+						}
+						setStr=minSetStr;
+					}
+				
+					tirage = (int) (Math.random()*setStr.size());
+					i=0;
+					for(String str:setStr) {
+						if (i==tirage) {
+							currDom=str;
+							break;
+						}
+						i++;
+					}
+					
+
+					s.assignAndPropagate(currVar, currDom);
+					
+					setStr=s.getFreeVariables();
+					
+					if(Math.random()*3 < 1)
+						atmincost=true;
+	
+				}
+				configurationClient1=s.minCostConfiguration();
+				
+				s.updatePassage(configurationClient1);
+				
+				s.reinitialisation();
+			}*/
+			
+			
+			s.save("sr2.dot");
+			
+			
+			
+
 			
 		}
 }

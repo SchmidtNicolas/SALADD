@@ -47,11 +47,11 @@ public class HeuristiqueContraintesDomaineMaxDomaineMaxEcartMaxHardFirst impleme
 				score[i]=0;
 				for(int j=0; j<cn.getCons(i).arity; j++){
 					for(int k=j+1; k<cn.getCons(i).arity; k++){
-						ecart=Math.abs(cn.getCons(i).scopeID.get(j)-cn.getCons(i).scopeID.get(k));
+						ecart=Math.abs(cn.getCons(i).scopeVar.get(j).id-cn.getCons(i).scopeVar.get(k).id);
 						if(ecart>ecartmax)
 							ecartmax=ecart;
 					}
-					domain=var.get(cn.getCons(i).scopeID.get(j)).domain;
+					domain=cn.getCons(i).scopeVar.get(j).domain;
 					if(domain>domainmax){
 						domainmax2=domainmax;
 						domainmax=domain;

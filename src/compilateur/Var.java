@@ -21,7 +21,7 @@ import java.util.ArrayList;
 public class Var {
 	public String name;
 	public int pos;					//from 0 to x
-	public final int id;			//from 0 to x
+	public int id;			//from 0 to x
 	
 	public int domain;
 	public ArrayList<String> valeurs;

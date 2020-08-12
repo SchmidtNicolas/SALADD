@@ -679,6 +679,75 @@ uht.detect();
 		
 	}
 	
+	//chaque arc contient le nombre de fois qu'on est passe par lui
+	public void countingValOnArc(){
+    	uht.countingToMoinsUn();
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		uht.getLast().get(i).counting=-1;
+    		uht.getLast().get(i).counting2=-1;
+    		uht.getLast().get(i).pondere=0;
+    		uht.getLast().get(i).inference=0;
+    	}    	
+    	
+		countingValOnArcDown();
+		countingValOnArcUp();
+    	uht.countingToMoinsUn();
+	}
+	
+    public void countingValOnArcDown(){
+    	
+    	if(first.actif && first.bottom==0){
+    		first.fils.counting=1;
+    	}
+    	
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		countingValOnArcDown(uht.getLast().get(i));
+    	}
+    }
+    
+	public long countingValOnArcDown(NodeDD n){		
+		long res=0;
+		if(n.counting==-1){			
+			for(int i=0; i<n.fathers.size(); i++){
+				if(n.fathers.get(i).bottom==0 && n.fathers.get(i).actif) {
+					res+=countingValOnArcDown(n.fathers.get(i).pere);
+				}
+				
+			}
+			n.counting = res; 
+		}
+		return n.counting;
+		
+	}
+	
+    public void countingValOnArcUp(){
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		uht.getLast().get(i).counting2=1;
+    	}
+    	
+    	first.passage1=first.fils.counting;
+    	
+    	
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		countingValOnArcUp(first.fils);
+    	}
+    }
+    
+	public long countingValOnArcUp(NodeDD n){		
+		long res=0;
+		if(n.counting2==-1){			
+			for(int i=0; i<n.kids.size(); i++){
+				if(n.kids.get(i).bottom==0 && n.kids.get(i).actif) {
+					res+=countingValOnArcUp(n.kids.get(i).fils);
+					n.kids.get(i).passage1=n.counting*n.kids.get(i).fils.counting2;
+				}
+
+			}
+			n.counting2=res;
+		}
+		return n.counting2;
+	}
+	
 	//prend en compte la ponderation
 	//cas de l'historique. (SLDD additif uniquement)
     public int countingpondere(){
@@ -974,9 +1043,9 @@ uht.detect();
 	public void conditionerTrue(Var variable, int val){
 		int var=variable.pos;
 		ArrayList<NodeDD> savelist=new ArrayList<NodeDD>();
-		for(int i=0; i<uht.size(var); i++){
+		//for(int i=0; i<uht.size(var); i++){
 			savelist=uht.get(var);
-		}
+		//}
 		for(int i=0; i<savelist.size(); i++){
 			uht.removeFromTable(savelist.get(i));
 			savelist.get(i).conditionerTrue(val);
@@ -1022,13 +1091,13 @@ uht.detect();
 	
 	//opt
 	public void deconditionerAll(){
-		for(int j=1; j<=variables.size(); j++){
+		for(int j=0; j<variables.size(); j++){
 			uht.deconditioner(j);
 		}
 	}
 	
 	public void reinitializeInState(Map<String, String> state) {
-		for(int j=1; j<=variables.size(); j++){
+		for(int j=0; j<variables.size(); j++){
 			Var v=variables.get(j-1);
 			String name=v.name;
 			if(state.containsKey(name))
@@ -1907,7 +1976,7 @@ uht.detect();
     	newVDD.first.changerFils(n);
     	
     	
-    	for(int i=1; i<variables.size(); i++){
+    	for(int i=0; i<variables.size(); i++){
     		lf1=uht.get(i);
     		for(int j=0; j<lf1.size(); j++)
     			lf2.add(new NodeDD(lf1.get(j).variable, lf1.get(j).id));
@@ -1984,6 +2053,92 @@ uht.detect();
 		}
 
     	return m;
+	}
+	
+	public void updatePassage(Map<String, String> mapVarnameDom){
+		NodeDD n=first.fils;
+		int dom;
+		first.passage1++;
+
+		while(!n.isLeaf()) {
+			dom=n.variable.conv(mapVarnameDom.get(n.variable.name));
+			n.kids.get(dom).passage1++;
+			n=n.kids.get(dom).fils;
+		}
+		
+	}
+	
+	public ArrayList<Integer> getOnlyChildParents(boolean verbose) {
+		ArrayList<Integer> listOnlyChild = new ArrayList<Integer>();
+		
+		ArrayList<NodeDD> list;
+		boolean onlyChild;
+		int idOnlyChild;
+		
+		
+		for(int i=0; i<uht.nbVariables; i++){
+			list=uht.get(i);
+			onlyChild=true;
+
+			fullListLoop:
+			for(NodeDD n:list) {
+				idOnlyChild=-1;
+				
+				for(int j=0; j<n.kids.size(); j++) {
+					if(n.kids.get(j).bottom==0 && n.kids.get(j).actif) {
+						if(idOnlyChild==-1)
+							idOnlyChild=n.kids.get(j).fils.id;
+						else {
+							if(idOnlyChild!=n.kids.get(j).fils.id) {
+								onlyChild=false;
+								break fullListLoop;
+							}
+						}
+					}
+				}
+			}
+			if(onlyChild) {
+				if(verbose)
+					System.out.println(variables.get(i).name);
+				listOnlyChild.add(i);
+			}
+			
+		}
+		
+		return listOnlyChild;
+	}
+	
+	public void forgetOnlyChildParents(int etage) {
+		
+		ArrayList<NodeDD> list;
+		NodeDD child=null;
+		NodeDD pere=null;
+		
+		list=uht.get(etage);
+			
+		for(NodeDD n:list) {
+			
+			//looking for child
+			for(int j=0; j<n.kids.size(); j++) {
+				if(n.kids.get(j).bottom==0 && n.kids.get(j).actif) {
+					child=n.kids.get(j).fils;
+					break;
+				}
+			}
+			
+			//for every incoming edge
+			for(int j=n.fathers.size()-1; j>=0; j--) {
+				pere=n.fathers.get(j).pere;
+				uht.removeFromTable(pere);
+				
+				n.fathers.get(j).changerFils(child);
+				
+				uht.ajoutSansNormaliser(pere);
+			}
+			//delete n
+			uht.removeDefinitely(n);
+		}
+			
 	}
 
 

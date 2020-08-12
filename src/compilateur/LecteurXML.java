@@ -348,7 +348,7 @@ public class LecteurXML {
 						if(subStrings[i].length()!=0){
 							for (int j=0; j<cn.nbVariables; j++){
 								if(cn.getVar(j).name.compareTo(subStrings[i])==0){
-									c.scopeID.add(j);
+									c.scopeVar.add(cn.getVar(j));
 									break;
 								}
 							}
@@ -369,15 +369,14 @@ public class LecteurXML {
 					for(int i=0; i<currentRel.nbTuples; i++) {
 						ArrayList<Integer> newTuple = new ArrayList<Integer>();
 						for(int j=0; j<currentRel.arity; j++) 
-							newTuple.add(cn.getVar(c.scopeID.get(j)).conv(currentRel.relationS[i][j]));
+							newTuple.add(c.scopeVar.get(j).conv(currentRel.relationS[i][j]));
 						c.cons.add(newTuple);
+						c.poid.add(currentRel.poid[i].copie());
+
 					}
 					c.defaultCost=currentRel.defaultCost; 
 					c.conflictsConstraint=currentRel.conflictsConstraint;
 					c.softConstraint=currentRel.softConstraint;
-					for(int i=0; i<currentRel.poid.length; i++) {
-						c.poid.add(currentRel.poid[i].copie());
-					}
 					
 					cn.addCons(c);				
 				}
@@ -479,7 +478,7 @@ public void lectureSuite(String nomFichier, ConstraintsNetwork cn) {
 						if(subStrings[i].length()!=0){
 							for (int j=0; j<cn.nbVariables; j++){
 								if(cn.getVar(j).name.compareTo(subStrings[i])==0){
-									c.scopeID.add(j);
+									c.scopeVar.add(cn.getVar(j));
 									break;
 								}
 							}
@@ -500,7 +499,7 @@ public void lectureSuite(String nomFichier, ConstraintsNetwork cn) {
 					for(int i=0; i<currentRel.nbTuples; i++) {
 						ArrayList<Integer> newTuple = new ArrayList<Integer>();
 						for(int j=0; j<currentRel.arity; j++) 
-							newTuple.add(cn.getVar(j).conv(currentRel.relation[i][j]));
+							newTuple.add(c.scopeVar.get(j).conv(currentRel.relationS[i][j]));
 						c.cons.add(newTuple);
 						c.poid.add(currentRel.poid[i].copie());
 					}
@@ -1219,7 +1218,7 @@ public void lectureCNF(String nomFichier, ConstraintsNetwork cn){
 		c.poid.add(new Sp(0));
 		
 		for(int i=0; i<c.arity; i++){
-			c.scopeID.add(Math.abs(contraiteBrute.get(i)));
+			c.scopeVar.add(cn.getVarID(Math.abs(contraiteBrute.get(i))));
 		}
 		
 		nbConstraints++;
