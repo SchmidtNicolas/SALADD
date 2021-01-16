@@ -18,6 +18,8 @@ public class ConstraintsNetwork {
 	public ArrayList<ArrayList<Integer>> graphAdjConsVar;
 	public ArrayList<Integer> OccurenceVariableDansContraintes;		//nombre de contraintes pour chaque variable
 
+	private ArrayList<Constraint> compiledConstraints;
+	
 	private ArrayList<Constraint> removedConstraints;
 	private ArrayList<Var> removedVars;
 
@@ -122,7 +124,7 @@ public int[][] getFullCons(int num) {
 			fullCons[i][j]=-1;	//default value
 			for(int k=0; k<constraints.get(num).arity; k++) {
 				if(constraints.get(num).scopeVar.get(k).pos==j) {
-					fullCons[i][j]=constraints.get(num).cons.get(i).get(k);
+					fullCons[i][j]=constraints.get(num).cons.get(i).tuple.get(k);
 					break;
 				}
 			}
@@ -154,9 +156,9 @@ public boolean getConflictsConstraint(int num){
 	return constraints.get(num).conflictsConstraint;
 }
 
-public ArrayList<Structure> getPoid(int num) {
+/*public ArrayList<Structure> getPoid(int num) {
 	return constraints.get(num).poid;
-}
+}*/
 
 
 public void reorderAll() {
@@ -174,29 +176,46 @@ public void compactConstraint() {
 			for(int j=i+1; j<constraints.size(); j++){
 				egal=true;
 				if(constraints.get(j)!=null){
-					if(constraints.get(i).softConstraint || constraints.get(i).conflictsConstraint){
-						if(constraints.get(j).arity==constraints.get(i).arity &&
-						   constraints.get(j).softConstraint==constraints.get(i).softConstraint && 
-						   constraints.get(j).conflictsConstraint==constraints.get(i).conflictsConstraint &&
-						   constraints.get(j).defaultCost.isNeutre() && constraints.get(i).defaultCost.isNeutre()) {
+					if(constraints.get(j).arity==constraints.get(i).arity &&
+					   constraints.get(j).softConstraint==constraints.get(i).softConstraint && 
+					   constraints.get(j).conflictsConstraint==constraints.get(i).conflictsConstraint &&
+					   constraints.get(j).defaultCost.isNeutre() && constraints.get(i).defaultCost.isNeutre()) {
 
-							for(int k=0; k<constraints.get(i).arity; k++){
-								if(constraints.get(i).scopeVar.get(k).id!=constraints.get(j).scopeVar.get(k).id){
-									egal=false;
-									break;
-								}
-							}
-							
-							if(egal){
-								constraints.get(i).nbTuples+=constraints.get(j).nbTuples;
-								constraints.get(i).poid.addAll(constraints.get(j).poid);
-								constraints.get(i).cons.addAll(constraints.get(j).cons);
-								constraints.remove(j);
-								
-								j--;
+						for(int k=0; k<constraints.get(i).arity; k++){
+							if(constraints.get(i).scopeVar.get(k).id!=constraints.get(j).scopeVar.get(k).id){
+								egal=false;
+								break;
 							}
 						}
+						
+						if(egal){
+							if(constraints.get(i).softConstraint || constraints.get(i).conflictsConstraint){
+								constraints.get(i).nbTuples+=constraints.get(j).nbTuples;
+								constraints.get(i).cons.addAll(constraints.get(j).cons);
+
+							}else {
+								//in case of support constraint
+								ArrayList<Tuple> keep=new ArrayList<Tuple>();
+								
+								constraints.get(i).name+="_"+constraints.get(j).name;
+								System.out.println(constraints.get(i).name);
+								for(int cpt=0; cpt<constraints.get(i).cons.size(); cpt++) {
+									for(int cpt2=0; cpt2<constraints.get(j).cons.size(); cpt2++) {
+										if(constraints.get(i).cons.get(cpt).equal(constraints.get(j).cons.get(cpt2))) {
+											keep.add(constraints.get(i).cons.get(cpt));
+											break;
+										}
+									}
+								}
+								constraints.get(i).cons=keep;
+								constraints.get(i).nbTuples = constraints.get(i).cons.size();
+							}
+							
+							constraints.remove(j);
+							j--;
+						}
 					}
+					
 				}
 			}
 		}
@@ -248,6 +267,7 @@ public void removeUselessVariables() {
 	
 	for(int i=0; i<vars.size(); i++) {
 		if(!isVariableUtile(vars.get(i))) {
+			System.out.println("remove "+vars.get(i).name);
 			removedVars.add(vars.get(i));
 			vars.remove(i);
 			i--;
@@ -366,7 +386,11 @@ public void graphAdjascenceDot(String s, boolean valued, boolean hard) {
 		    		}
 	    		}else {
 	    			if(constraints.get(cpt).arity==2) {
-	    				s=constraints.get(cpt).scopeVar.get(0).name + " -- " + constraints.get(cpt).scopeVar.get(1).name + ";\n";
+	    				if(!constraints.get(cpt).softConstraint)
+	    					s=constraints.get(cpt).scopeVar.get(0).name + " -- " + constraints.get(cpt).scopeVar.get(1).name + ";\n";
+	    				else
+	    					s=constraints.get(cpt).scopeVar.get(0).name + " -- " + constraints.get(cpt).scopeVar.get(1).name + "; //soft\n";
+
 			    	    fW.write(s);
 	    			}
 	    		}
@@ -427,6 +451,7 @@ public void graphAdjascenceSimpleDot(String s) {
 
 
 //suppression des variables presentes que dans 1 contrainte
+//not used
 public void removeSimpleVariables() {
 	boolean isUnique;
 	
@@ -452,12 +477,81 @@ public void removeSimpleVariables() {
 				constraints.get(iC).scopeVar.remove(iV);
 				for(int i=iV; i<constraints.get(iC).cons.size(); i++)
 				{
-					constraints.get(iC).cons.get(i).remove(iV);
+					constraints.get(iC).cons.get(i).tuple.remove(iV);
 				}
 			}
 		}
 	}
 }
+
+//suppression des variables presentes que dans 1 contrainte
+public void removeVariablesInOnlyOneConstraint() {
+	boolean isUnique;
+	
+	for(int iC=0; iC<nbConstraints; iC++){
+		if(!constraints.get(iC).softConstraint) {
+			for(int iV=0; iV<constraints.get(iC).arity; iV++){
+				isUnique=true;
+				
+				outerloop:
+				for(int jC=0; jC<nbConstraints; jC++){
+		    		for(int jV=0; jV<constraints.get(jC).arity; jV++){
+		    			if(iC!=jC && constraints.get(iC).scopeVar.get(iV).id == constraints.get(jC).scopeVar.get(jV).id) {
+		    				System.out.println( constraints.get(iC).name+" "+constraints.get(jC).name+" "+constraints.get(iC).scopeVar.get(iV).name+" "+constraints.get(jC).scopeVar.get(jV).name);
+		    				isUnique=false;
+		    				break outerloop;
+		    			}
+		    		}
+		    	}
+				
+				//remove var from constraint
+				if(isUnique) {
+					//saveConstraint
+					Constraint oldC=constraints.get(iC);
+					Constraint saveC=oldC.Copie();
+					
+					//si la contrainte n'est pas déja save
+					boolean alreadysaved=false;
+					for(int i=0; i<removedConstraints.size(); i++) {
+						if(removedConstraints.get(i).name.compareTo(saveC.name)==0) {
+							alreadysaved=true;
+							break;
+						}
+					}
+					if(!alreadysaved)
+						removedConstraints.add(saveC);
+					
+					saveC.scopeVar.get(iV).inGraph=false;
+					saveC.scopeVar.get(iV).constraint=saveC;
+					
+					//modif old	
+					oldC.arity--;
+					
+					if(oldC.arity>1) {
+						System.out.println(oldC.scopeVar.get(iV).name+" removed");
+						oldC.name += "_m" + oldC.scopeVar.get(iV).name;
+						
+						oldC.scopeVar.remove(iV);
+						//oldC.arity--;
+						for(int i=0; i<constraints.get(iC).cons.size(); i++)
+						{
+							constraints.get(iC).cons.get(i).tuple.remove(iV);
+						}
+						iV--;
+					}else {
+						//useless, remove
+						System.out.println(oldC.scopeVar.get(iV).name+" removed -> "+oldC.name+" removed");
+						constraints.remove(iC);
+						nbConstraints--;
+						iC--;
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
 
 protected void afficherOrdre(){
 	System.out.println("ordre sur les variables : ");
@@ -562,10 +656,11 @@ public void removeImplications() {
 	Constraint cI;
 	Var vb, va;
 	
-	
+	//compute dependeces fonctionels
 	for(int i=0; i<this.nbConstraints; i++)
 		constraints.get(i).updateImplicationBinary();
 	
+	//update other constraints
 	for(int i=0; i<this.nbConstraints; i++) {
 		if(constraints.get(i).involved!=-1) {
 			cI=constraints.get(i);
@@ -582,15 +677,53 @@ public void removeImplications() {
 		}
 	}
 	
+	//remove dependences fonctionnels
 	for(int i=0; i<this.constraints.size(); i++) {
 		if(constraints.get(i).involved!=-1) {
+			Var v=constraints.get(i).scopeVar.get(constraints.get(i).involved);
+			//remove var
+			/*removedVars.add(v);
+			vars.remove(v);
+			nbVariables--;*/
+			v.inGraph=false;
+			System.out.println("remove "+v.name+" (dependance fonctionelle)");
+			v.constraint=constraints.get(i);
+			
 			removedConstraints.add(constraints.get(i));
 			constraints.remove(i);
+			
 			i--;
 		}
 	}
 	nbConstraints=constraints.size();
 	
+}
+
+public void removeUselessConstraints() {
+	for(int i=0; i<constraints.size(); i++) {
+		if(constraints.get(i).computPercentOfRefusedTuples()==0) {
+			System.out.println("removedoublon");
+			if(!constraints.get(i).removeDoulonTuples()){
+				System.out.println(constraints.get(i).name+" removed because useless (0% of refused tuples)");
+				constraints.remove(i);
+				nbConstraints--;
+			}
+		}
+			
+	}
+}
+
+public void updateVarNotInGraph() {
+	for(Var v : vars) {
+		if(!v.inGraph) {
+			
+			//dependance de 1 var
+			if(v.constraint!=null && v.constraint.arity==2) {
+				//for()
+			}
+			
+		}
+	}
 }
 
 }

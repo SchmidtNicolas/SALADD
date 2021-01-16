@@ -13,13 +13,16 @@ public class Constraint {
 	public boolean conflictsConstraint; 
 	
 	public ArrayList<Var> scopeVar;
-	public ArrayList<ArrayList<Integer>> cons;
-	public ArrayList<Structure> poid;
+	public ArrayList<Tuple> cons;
+	//public ArrayList<Structure> poid;
 	
 	public int involved = -1;
 	public int involving = -1;
 	public ArrayList<ArrayList<Integer>> ImplicantValues;
 	public int[] ImpliedValues;
+	
+	public VDD vdd;
+	public UniqueHashTable uht;
 	
 	public Constraint(String name, 	int arity, int nbTuples) {
 		this.name=name;
@@ -27,20 +30,46 @@ public class Constraint {
 		this.nbTuples=nbTuples;
 		
 		scopeVar = new ArrayList<Var>(arity);
-		cons = new ArrayList<ArrayList<Integer>>(nbTuples);
-		poid = new ArrayList<Structure>(nbTuples);
+		cons = new ArrayList<Tuple>(nbTuples);
 	}
 	
 	public Constraint() {
 		scopeVar = new ArrayList<Var>();
-		cons = new ArrayList<ArrayList<Integer>>();
-		poid = new ArrayList<Structure>();
+		cons = new ArrayList<Tuple>();
+	}
+	
+	public Constraint Copie() {
+		Constraint c = new Constraint(this.name, this.arity, this.nbTuples);
+		if(this.defaultCost!=null)
+			c.defaultCost=this.defaultCost.copie();
+		else
+			c.defaultCost=null;
+		c.softConstraint=this.softConstraint; 
+		c.conflictsConstraint=this.conflictsConstraint; 
+		 
+		c.scopeVar= (ArrayList<Var>)this.scopeVar.clone();
+		c.cons=new ArrayList<Tuple>();
+		for(int i=0; i<this.cons.size(); i++)
+			c.cons.add(this.cons.get(i).Copie());
+				
+		c.involved=this.involved;
+		c.involving=this.involving;
+		if(this.ImplicantValues!=null)
+			c.ImplicantValues=(ArrayList<ArrayList<Integer>>)this.ImplicantValues.clone();
+		else
+			c.ImplicantValues=null;
+		if(this.ImpliedValues!=null)
+			c.ImpliedValues=ImpliedValues.clone();
+		else
+			c.ImpliedValues=null;
+		
+		return c;
 	}
 	
 	public Structure[] getPoidTab() {
 		Structure[] s=new Structure[nbTuples];
 		for(int i=0; i<nbTuples; i++)
-			s[i]=poid.get(i);
+			s[i]=cons.get(i).poid;
 		
 		return s;
 	}
@@ -49,7 +78,7 @@ public class Constraint {
 		int[][] c=new int[nbTuples][arity];
 		for(int i=0; i<nbTuples; i++) {
 			for(int j=0; j<arity; j++) {
-				c[i][j]=cons.get(i).get(j);
+				c[i][j]=cons.get(i).tuple.get(j);
 			}
 		}
 		return c;
@@ -72,10 +101,10 @@ public class Constraint {
 	//reordonner la contrainte pour respecter l'ordre naturel
 	public void reorderConstraint(){
 		for(int i=0; i<arity-1; i++) {
-			if(i>=0 && scopeVar.get(i).id>scopeVar.get(i+1).id) {
+			if(i>=0 && scopeVar.get(i).pos>scopeVar.get(i+1).pos) {
 				Collections.swap(scopeVar, i, i+1);
 				for(int j=0; j<cons.size(); j++) {
-					Collections.swap(cons.get(j), i, i+1);
+					cons.get(j).swap(i, i+1);
 				}
 				i-=2;
 			}
@@ -98,6 +127,20 @@ public class Constraint {
 		return divi*100;
 	}
 	
+	public boolean removeDoulonTuples() {
+		boolean doublonRemoved=false;
+		for(int i=0; i<cons.size(); i++) {
+			for(int j=i+1; j<cons.size(); j++) {
+				if(cons.get(i).equal(cons.get(j))) {
+					cons.remove(j);
+					doublonRemoved=true;
+					j--;
+				}
+			}
+		}
+		return doublonRemoved;
+	}
+	
 	public void updateImplicationBinary() {
 		if(arity == 2 && softConstraint==false && conflictsConstraint==false) {
 			for(int a=0; a<this.arity; a++) {
@@ -107,7 +150,7 @@ public class Constraint {
 					doubleloop:
 					for(int i=0; i<nbTuples; i++) {
 						for(int j=i+1; j<nbTuples; j++) {
-							if(cons.get(i).get(a) == cons.get(j).get(a)) {
+							if(cons.get(i).tuple.get(a).equals(cons.get(j).tuple.get(a))) {
 								impl = false;
 								break doubleloop;
 							}
@@ -117,7 +160,7 @@ public class Constraint {
 					if(impl) {
 						involving=a;
 						involved=1-a;
-						System.out.println(scopeVar.get(involving).name+"->"+scopeVar.get(involved).name);
+						System.out.println(scopeVar.get(involving).name+"->"+scopeVar.get(involved).name+" ("+this.name+")");
 						break;
 					}
 					
@@ -199,8 +242,8 @@ public class Constraint {
 	public void replaceVariable1(Var vb, Var va, Constraint cI) {//==-1
 		ArrayList<Integer> array;
 		int val;
-		ArrayList<ArrayList<Integer>> newCons = new ArrayList<ArrayList<Integer>>();
-		ArrayList<Integer> currTuple;
+		ArrayList<Tuple> newCons = new ArrayList<Tuple>();
+		Tuple currTuple;
 		ArrayList<Structure> newPoid = new ArrayList<Structure>();
 
 		
@@ -209,14 +252,14 @@ public class Constraint {
 		for(int i=0; i<scopeVar.size(); i++) {
 			if(scopeVar.get(i).id == vb.id) {
 				for(int j=0; j<nbTuples; j++) {
-					val=cons.get(j).get(i);
+					val=cons.get(j).tuple.get(i);
 					array=cI.getImplicantValues(val);
 					
 					for(Integer newVal:array) {
-							currTuple=(ArrayList<Integer>) cons.get(j).clone();
+							currTuple=cons.get(j).Copie();
 							currTuple.set(i, newVal);
+							currTuple.poid=cons.get(i).poid.copie();
 							newCons.add(currTuple);
-							newPoid.add(poid.get(j).copie());
 						
 						//si ca ne concorde pas, on ne la garde pas
 					}
@@ -228,7 +271,6 @@ public class Constraint {
 					System.out.println("in "+this.name+" : " + vb.name +" remplaced by "+ va.name + " ("+cons.size()+"->"+newCons.size()+")");
 					cons=newCons;
 					nbTuples=cons.size();
-					poid = newPoid;
 				
 					this.reorderConstraint();
 
@@ -239,25 +281,23 @@ public class Constraint {
 	public void replaceVariable2(Var vb, Var va, Constraint cI, int vaWasHere) {//!=-1
 		int implied;
 		int val;
-		ArrayList<ArrayList<Integer>> newCons = new ArrayList<ArrayList<Integer>>();
-		ArrayList<Structure> newPoid = new ArrayList<Structure>();
-		ArrayList<Integer> newTuple;
+		ArrayList<Tuple> newCons = new ArrayList<Tuple>();
+		Tuple newTuple;
 		
 		
 		for(int i=0; i<scopeVar.size(); i++) {
 			if(scopeVar.get(i).id == vb.id) {
 				
-			    Iterator<ArrayList<Integer>> itr = cons.iterator();
+			    Iterator<Tuple> itr = cons.iterator();
 			    int j=0;
 			    while (itr.hasNext()) {
-			    	ArrayList<Integer> tuple = itr.next();
-			    	val=tuple.get(vaWasHere);
+			    	Tuple tuple = itr.next();
+			    	val=tuple.tuple.get(vaWasHere);
 					implied=cI.getImpliedValues(val);
-			    	if (tuple.get(i)==implied) {
-			    		newTuple = (ArrayList<Integer>) tuple.clone();
-			    		newTuple.remove(i);
+			    	if (tuple.tuple.get(i)==implied) {
+			    		newTuple = tuple.Copie();
+			    		newTuple.tuple.remove(i);
 			    		newCons.add(newTuple);
-			    		newPoid.add(poid.get(j));
 			    	}
 			    	j++;
 			    }
@@ -289,7 +329,6 @@ public class Constraint {
 					System.out.println("in "+this.name+" : " + vb.name +" removed" + " ("+cons.size()+"->"+newCons.size()+")");
 					cons=newCons;
 					nbTuples=cons.size();
-					poid = newPoid;
 					arity--;
 
 				break;
@@ -298,13 +337,13 @@ public class Constraint {
 		
 	}
 	
-	public void a(int j) {
+	/*public void a(int j) {
 		cons.remove(j);
 		poid.remove(j);
 	}
 	public void b(int i, int j) {
 		cons.get(j).remove(i);
-	}
+	}*/
 
 	//if a->b and b=val, return arraylist(a)
 	public ArrayList<Integer> getImplicantValues(int val){
@@ -319,7 +358,7 @@ public class Constraint {
 			
 			//assign
 			for(int i=0; i<nbTuples; i++) {
-				ImplicantValues.get(cons.get(i).get(involved)).add(cons.get(i).get(involving));
+				ImplicantValues.get(cons.get(i).tuple.get(involved)).add(cons.get(i).tuple.get(involving));
 			}
 			
 			
@@ -340,13 +379,101 @@ public class Constraint {
 			
 			//assign
 			for(int i=0; i<nbTuples; i++) {
-				ImpliedValues[cons.get(i).get(involving)]= cons.get(i).get(involved);
+				ImpliedValues[cons.get(i).tuple.get(involving)]= cons.get(i).tuple.get(involved);
 			}
 			
 			
 		}
 		
 		return ImpliedValues[val];
+	}
+	
+	public void toVDD(boolean arg_plus) {
+		reorderConstraint();
+		
+		ArrayList<Integer> saveOrder=fakeOrder();
+		
+		uht=new UniqueHashTable(arity);
+		vdd =new VDD(scopeVar, uht, arg_plus);
+		
+		//init nextTuples
+		ArrayList<Integer> nextTuplesIn=new ArrayList<Integer>();
+		for(int i=0; i<nbTuples; i++) {
+			nextTuplesIn.add(i);
+		}
+		
+		uht.removeFromTable(vdd.first.fils);
+		addSupport(vdd.first.fils, 0, nextTuplesIn);
+		uht.ajoutSansNormaliser(vdd.first.fils);
+
+		uht.normaliser();
+		uht.supprNeudNegatifs();
+		uht.copieToNull();			//+ a remonter to null
+		uht.cptTo(0);
+		
+		vdd.uht.rechercheNoeudInutile();
+
+		goBackToRightOrder(saveOrder);
+	}
+	
+	//todo PM
+	public void addSupport(NodeDD node, int etage, ArrayList<Integer> tuplesIn) {
+		NodeDD newFils;
+		ArrayList<Integer> nextTuplesIn=new ArrayList<Integer>();
+		for(int i=0; i<scopeVar.get(etage).domain; i++) {
+			
+			nextTuplesIn.clear();
+			for(int j=0; j<tuplesIn.size(); j++) {
+				if(cons.get(tuplesIn.get(j)).tuple.get(etage)==i) {
+					nextTuplesIn.add(tuplesIn.get(j));
+					tuplesIn.remove(j);			//remove index
+					j--;
+				}
+			}
+			if(nextTuplesIn.size()!=0) {
+				if(etage+1<arity) {
+					if(node.kids.get(i).fils.fathers.size()>1) {					//si il en reste non attribue
+					
+						newFils=new NodeDD(node.kids.get(i).fils, node.kids.get(i));
+						newFils.cpt=1;
+
+						addSupport(newFils, etage+1, nextTuplesIn);
+					
+						uht.ajoutSansNormaliser(newFils);
+					}else {	//it's the last one, no duplicate
+						uht.removeFromTable(node.kids.get(i).fils);
+						addSupport(node.kids.get(i).fils, etage+1, nextTuplesIn);
+						uht.ajoutSansNormaliser(node.kids.get(i).fils);
+
+					}
+					
+				}else {
+						//todo add valuation
+				}
+					
+
+			}else {										
+				node.kids.get(i).bottom++;
+			}
+			
+		}
+		
+	}
+	
+	//put variable with wrong position indice to fake uht. saved indices are returned
+	public ArrayList<Integer> fakeOrder(){
+		ArrayList<Integer> saveOrder=new ArrayList<Integer>();
+		for(int i=0; i<scopeVar.size(); i++) {
+			saveOrder.add(scopeVar.get(i).pos);
+			scopeVar.get(i).pos=i;
+		}
+		return saveOrder;
+	}
+	//put variable with wrong position indice to fake uht. saved indices are returned
+	public void goBackToRightOrder(ArrayList<Integer> order){
+		for(int i=0; i<scopeVar.size(); i++) {
+			scopeVar.get(i).pos=order.get(i);
+		}
 	}
 	
 }

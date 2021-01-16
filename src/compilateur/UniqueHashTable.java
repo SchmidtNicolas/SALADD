@@ -207,6 +207,8 @@ public class UniqueHashTable {
 		}
 	}
 	
+
+	
 	public NodeDD ajoutNormaliseReduit(NodeDD n){				
 		
 		NodeDD frere=null;
@@ -316,7 +318,6 @@ public class UniqueHashTable {
 	}
 	
 	
-	
 	//accesseurs
 	private void add(NodeDD n){
 		if(n.variable!=null)
@@ -355,7 +356,7 @@ public class UniqueHashTable {
 		for(int i=0; i<uniqueHashTable.length; i++){
 			eN=uniqueHashTable[i].values().iterator();
 			while(eN.hasNext())
-				size+=eN.next().kidsdiffbottom();
+				size+=eN.next().kidsdiffbottomActif();
 		}
 
 		return size;
@@ -370,7 +371,7 @@ public class UniqueHashTable {
 
 		eN=uniqueHashTable[var].values().iterator();
 		while(eN.hasNext())
-			size+=eN.next().kidsdiffbottom();
+			size+=eN.next().kidsdiffbottomActif();
 		
 
 		return size;
@@ -598,7 +599,7 @@ public class UniqueHashTable {
 		}
 		
 		for(int i=var+1; i<uniqueHashTable.length; i++){
-			if(next){
+			if(uniqueHashTable[i].size() > 0 && next){
 				//convtofalse
 				//uniqueHashTable[i].
 				
@@ -1598,13 +1599,16 @@ public class UniqueHashTable {
 		}
 	}
 	public void ellagage(ConstraintsNetwork cn){
+		int nbVarToRemove=0;
 		Var v;
 		for (int i=0; i<nbVariables; i++){
 			v=this.get(i).get(0).variable;
 			if(!cn.isVariableUtile(v)){
-				this.courtcircuit(this.get(i).get(0));
+				this.courtcircuit(this.get(i).get(0));	
+				nbVarToRemove++;
 			}
 		}
+		nbVariables-=nbVarToRemove;
 	}
 	
 	

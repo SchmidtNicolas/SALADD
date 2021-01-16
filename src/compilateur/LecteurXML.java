@@ -133,7 +133,7 @@ public class LecteurXML {
 	}
  
 	//lecture d'un domaine (dans la class r)
-	public void lectureDomaine(String s, Domain d){
+	/*public void lectureDomaine(String s, Domain d){
 		if(!s.contains("..")){
 			String phrase="";
 			char curr;
@@ -182,7 +182,7 @@ public class LecteurXML {
 			if(id3<id2)
 				id2=id3;
 			if(s.length()<id2)
-				id2=s.length();
+				id2=s.length()-1;
 			s2=Integer.parseInt(s.substring(id+2, id2+id));
 			
 			
@@ -197,6 +197,25 @@ public class LecteurXML {
 			
 		}
 				
+	}*/
+	public void lectureDomaine(String s, Domain d){
+        s = s.replace("\n", "");
+		String tab[]=s.split(" ");
+		String temp;
+		String doublePoint[];
+		for(int i=0; i<tab.length; i++) {
+			if(tab[i].contains("..")) {
+				temp=tab[i];
+				doublePoint=temp.split("\\.\\.");
+
+				for(int j=Integer.parseInt(doublePoint[0]); j<=Integer.parseInt(doublePoint[1]); j++){
+					d.elem.add(String.valueOf(j));
+				}
+			}else {
+				if(tab[i].length()>0)
+					d.elem.add(tab[i]);
+			}
+		}		
 	}
 	
 	public void lecture(String nomFichier, ConstraintsNetwork cn) {
@@ -304,6 +323,8 @@ public class LecteurXML {
 					rel.get(temp).conflictsConstraint=(eElement.getAttribute("semantics").compareTo("conflicts")==0);
 					if(rel.get(temp).softConstraint)
 						rel.get(temp).defaultCost= new Sp(Integer.parseInt(eElement.getAttribute("defaultCost")));
+					else
+						rel.get(temp).defaultCost= new Sp();
 					
 					if(Integer.parseInt(eElement.getAttribute("nbTuples"))!=0)
 					{										//evite les erreurs lorsque nombre de tuples = 0
@@ -367,11 +388,11 @@ public class LecteurXML {
 					}
 					c.nbTuples=currentRel.nbTuples;
 					for(int i=0; i<currentRel.nbTuples; i++) {
-						ArrayList<Integer> newTuple = new ArrayList<Integer>();
+						Tuple newTuple = new Tuple();
 						for(int j=0; j<currentRel.arity; j++) 
 							newTuple.add(c.scopeVar.get(j).conv(currentRel.relationS[i][j]));
+						newTuple.poid=currentRel.poid[i].copie();
 						c.cons.add(newTuple);
-						c.poid.add(currentRel.poid[i].copie());
 
 					}
 					c.defaultCost=currentRel.defaultCost; 
@@ -435,6 +456,8 @@ public void lectureSuite(String nomFichier, ConstraintsNetwork cn) {
 					rel2.get(temp).conflictsConstraint=(eElement.getAttribute("semantics").compareTo("conflicts")==0);
 					if(rel2.get(temp).softConstraint)
 						rel2.get(temp).defaultCost= new Sp(Integer.parseInt(eElement.getAttribute("defaultCost")));
+					else
+						rel2.get(temp).defaultCost= new Sp();
 					
 					if(Integer.parseInt(eElement.getAttribute("nbTuples"))!=0)
 					{										//evite les erreurs lorsque nombre de tuples = 0
@@ -497,11 +520,11 @@ public void lectureSuite(String nomFichier, ConstraintsNetwork cn) {
 					}
 					c.nbTuples=currentRel.nbTuples;
 					for(int i=0; i<currentRel.nbTuples; i++) {
-						ArrayList<Integer> newTuple = new ArrayList<Integer>();
+						Tuple newTuple = new Tuple();
 						for(int j=0; j<currentRel.arity; j++) 
 							newTuple.add(c.scopeVar.get(j).conv(currentRel.relationS[i][j]));
+						newTuple.poid=currentRel.poid[i].copie();
 						c.cons.add(newTuple);
-						c.poid.add(currentRel.poid[i].copie());
 					}
 					c.defaultCost=currentRel.defaultCost; 
 					c.conflictsConstraint=currentRel.conflictsConstraint;
@@ -1208,14 +1231,14 @@ public void lectureCNF(String nomFichier, ConstraintsNetwork cn){
 		c.softConstraint = false;
 		c.conflictsConstraint = true;
 		c.defaultCost=new Sp(0);
-		ArrayList<Integer> tuple=new ArrayList<Integer>();
+		Tuple tuple=new Tuple();
 		for(int i=0; i<c.arity; i++){
 			if(contraiteBrute.get(i)>0)
 				tuple.add(1);
 			else
 				tuple.add(0);
 		}
-		c.poid.add(new Sp(0));
+		tuple.poid=new Sp(0);
 		
 		for(int i=0; i<c.arity; i++){
 			c.scopeVar.add(cn.getVarID(Math.abs(contraiteBrute.get(i))));

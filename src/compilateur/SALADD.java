@@ -47,6 +47,7 @@ import compilateur.test_independance.TestIndependance;
 public class SALADD {		
 	
 	private VDD x;//testVDD;
+	public ConstraintsNetwork cn;
 	private boolean isHistorique;
 	private String inX;
 	
@@ -230,7 +231,7 @@ public class SALADD {
 		long start= System.currentTimeMillis();
 		long end;
 		
-		ConstraintsNetwork cn = new ConstraintsNetwork();
+		cn = new ConstraintsNetwork();
 		LecteurXML xml=new LecteurXML();
 		if(arg_plus){
 			if(file_names.get(0).contains(".xml"))
@@ -250,15 +251,22 @@ public class SALADD {
 			xml.lectureSuite(file_names.get(i), cn);
 		}
 		
+		System.out.println("//actualise");
 		cn.actualise();
-		
+		System.out.println("//removeImplications");
 		cn.removeImplications();
-		
-		cn.removeUselessVariables();
-		
-		cn.reordoner(arg_heuristique, false);			//<---
-		
+		System.out.println("//compactConstraint");
 		cn.compactConstraint();
+		System.out.println("//removeUselessConstraints");
+		cn.removeUselessConstraints();
+		System.out.println("//removeUselessVariables");
+		cn.removeUselessVariables();
+		System.out.println("//removeVariablesInOnlyOneConstraint");
+		cn.removeVariablesInOnlyOneConstraint();
+		System.out.println("//reordoner");
+		cn.reordoner(arg_heuristique, false);			//<---
+		System.out.println("//fin pretraintement");
+		
 		
 		UniqueHashTable uht=new UniqueHashTable(cn.nbVariables);
 		x =new VDD(cn.getVarPos(), uht, arg_plus);
@@ -299,6 +307,8 @@ public class SALADD {
 			
 			
 			if(c!=null){
+				/////////////////////////////
+				/*
 				Poids=c.getPoidTab();
 				if(c.arity!=0){
 					defaultCost=c.defaultCost;
@@ -308,19 +318,51 @@ public class SALADD {
 					contraintes=cn.getFullCons(i);
 			
 					x.valeurChemin(contraintes, Poids, defaultCost, softConstraint, conflictsConstraint);
-
-
 					
 					//uht.detect();
 					if(arg_affich_text>=2){
 						end=System.currentTimeMillis();
 						System.out.println(i+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s " + c.name + " "+ c.computPercentOfRefusedTuples() +"%");
 					}
+				}*/
+				
+				 ///////////////////
+				c.toVDD(true);
+				//c.vdd.toDot("a"+i+"_"+c.name, false);
+				//x.merge_init(c.vdd);
+				x.merge(c.vdd);
+				
+				//x.toDot("a"+i+"_"+c.name+"_", false);
+				if(arg_affich_text>=2){
+					end=System.currentTimeMillis();
+					System.out.println(i+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s " + c.name + " "+ c.computPercentOfRefusedTuples() +"%");
 				}
+				///////////////////////////
 			}
+			
+			
+			
 //			System.gc();
 		}
 		x.affichageResultats(arg_affich_text, start);
+		
+		
+		//get variables de decision
+		//get variables a decider
+		
+		//pour chaque variable a decider
+			//pour chaque valeur	
+				//affecter val
+				//propage up
+				//get variables de decisions impliqués
+			//pour cahque variable de decision
+				//
+		
+		//
+		
+		
+		
+		
 	}
 	
 	
@@ -451,7 +493,7 @@ public class SALADD {
 //			xml.reorganiseContraintes(0);
 		
 	
-		
+		/*
 		for(int i=0; i<cn.nbConstraints; i++){
 			
 			c=cn.getCons(i);
@@ -480,7 +522,28 @@ public class SALADD {
 			}
 		}
 		x.affichageResultats(arg_affich_text, start);
-
+		*/
+		
+		
+		
+		for(int i=0; i<cn.nbConstraints; i++){
+			
+			c=cn.getCons(i);
+			
+			c.toVDD(true);
+			
+			x.merge(c.vdd);
+			
+			x.toDot(c.name+"_", false);
+					
+			if(arg_affich_text>=2){
+				end=System.currentTimeMillis();
+				System.out.println(i+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s");
+			}
+			
+		}
+		x.affichageResultats(arg_affich_text, start);
+		
 	}
 	
 	
@@ -1070,14 +1133,55 @@ public class SALADD {
     		x.updatePassage(mapVarnameDom);
     	} 
     	
+    	public void postTreatments(boolean verbose) {
+    		forgetOnlychildVariables(verbose);
+    	}
+    	
     	public void forgetOnlychildVariables(boolean verbose) {
     		//forgetting
-    		ArrayList<Integer> listOnlyChild;
+    		/*ArrayList<Integer> listOnlyChild;
     		listOnlyChild=x.getOnlyChildParents(verbose);
     		for(int i:listOnlyChild) {
     			x.forgetOnlyChildParents(i);
+    		}*/
+    		
+    		propagation();
+    		
+    		//x.entropie(x.getVar("v12").pos, x.getVar("v0").pos);
+    		
+    		ArrayList<Integer> listOnlyChild;
+    		listOnlyChild=x.getOnlyChildParents(verbose);
+    		System.out.println("start");
+    		System.out.println(listOnlyChild);
+    		for(int i=0; i<listOnlyChild.size(); i++) {
+    			System.out.print(x.variables.get(listOnlyChild.get(i)).name+" ");
     		}
-    		x.toDot("brut", false);
+    		System.out.println();
+    		
+    		Var v;
+    		for(int i=0; i<listOnlyChild.size(); i++) {
+    			v=x.variables.get(listOnlyChild.get(i));
+        		for(int j=0; j<v.domain; j++) {
+        			System.out.println(v.name+"="+j);
+            		System.out.println(x.colorUp(v.pos, j));
+            		x.learnUp(v, j, null);
+            		//v.setOnlyChildFormula(x.colorUp(v.pos, j), j);
+            		v.inGraph=false;
+        		}
+        		
+
+    		}
+    		
+    		//forgetting
+    		
+    		for(int i:listOnlyChild) {
+    			x.forgetOnlyChildParents(i);
+    			
+    		}
+    	}
+    	
+    	public void updateVarNotInGraph() {
+    		//for(Var v : cn.vars)
     	}
    
 }

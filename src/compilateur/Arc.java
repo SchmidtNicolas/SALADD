@@ -409,7 +409,7 @@ public class Arc {
 		
 		//if(!this.fils.isLeaf() || this.s.printstr().compareTo("S")!=0){		//toujours sauf qui pointe vers la feuille d'un add
 						
-			if(bottom==0){
+			if(bottom==0) {// && actif){
 				if(pere!=null){			//si c'est pas le premier arc
 					if(this.s.printstr().compareTo("S")==0 && this.fils.isLeaf()){		//si on est au dernier noeud d'un add
 						s+="n" + pere.id + "_" + ((S)this.s).last.toDot() + " -> n" + fils.id + " [pos="+pos;
@@ -430,6 +430,10 @@ public class Arc {
 						s+= ", style=dotted";
 					if(pos==(this.pere.variable.domain-1))
 						s+= ", style=dashed";
+					
+					if(!actif)
+						s+=", color=gray";
+					
 					s+="];\n";
 				}else{					// si c'est le premier arc
 					s+="nada -> n" + fils.id + " [";

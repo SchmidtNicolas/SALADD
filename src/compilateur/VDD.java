@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import compilateur.test_independance.TestIndependance;
 
@@ -97,6 +98,7 @@ public class VDD{
     	memorymanager = MemoryManager.getMemoryManager();
     }
 	
+    
     //cree un DD de 1 variable non bool a partir d'une UT existante
 /*    public VDD(Var var, UniqueHashTable u){
 		uht=u;
@@ -137,7 +139,9 @@ public class VDD{
 					s=new St();
 				new Arc(precedant, suivant, j, s);		//int donc SLDD+
 			}
+			
 			uht.ajoutSansNormaliser(precedant);	
+
 			precedant=suivant;
 		}
 		
@@ -149,12 +153,15 @@ public class VDD{
 				s=new St();
 			new Arc(precedant, last, j, s);
 		}
-		uht.ajoutSansNormaliser(precedant);
+		
+		uht.ajoutSansNormaliser(precedant);	
+		
 		uht.ajoutSansNormaliser(last);
 		
 
 		
     } 
+	
 
     // attention si poids negatifs : conflits sur cpt (cpt:indicateur, cpt=-1:suppression)
     //recursif descend les valeurs sur les feuilles finales (gestion des arcs)
@@ -675,8 +682,36 @@ uht.detect();
 			n.counting=res;
 			return res;
 		}
-
-		
+	}
+	
+	//compte le nombre de passage dans chaques neud
+	//resultat dans les cpt
+    public long countingFromBottom(){
+    	long res=0;
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		uht.getLast().get(i).counting=1;
+    	}
+    	
+    	if(first.actif && first.bottom==0){
+    		res+=countingFromBottom(first.fils);
+    	}
+    	
+    	uht.countingToMoinsUn();
+    	return res;
+    }
+	
+	public long countingFromBottom(NodeDD n){		
+		long res=0;
+		if(n.counting!=-1){								//sinon on partirai plusieurs fois de chaque sommets
+			return n.counting;
+		}else{
+			for(int i=0; i<n.kids.size(); i++){
+				if(n.kids.get(i).bottom==0 && n.kids.get(i).actif)
+					res+=countingFromBottom(n.kids.get(i).fils);
+			}
+			n.counting=res;
+			return res;
+		}
 	}
 	
 	//chaque arc contient le nombre de fois qu'on est passe par lui
@@ -2078,7 +2113,7 @@ uht.detect();
 		
 		for(int i=0; i<uht.nbVariables; i++){
 			list=uht.get(i);
-			onlyChild=true;
+			onlyChild=list.size()>0;
 
 			fullListLoop:
 			for(NodeDD n:list) {
@@ -2099,8 +2134,18 @@ uht.detect();
 			}
 			if(onlyChild) {
 				if(verbose)
+					
+				if(variables.get(i).name.compareTo("v40")!=0 && 
+						variables.get(i).name.compareTo("v11")!=0 &&
+						variables.get(i).name.compareTo("v26")!=0 &&
+						variables.get(i).name.compareTo("v100")!=0 &&
+						variables.get(i).name.compareTo("v92")!=0 &&
+						variables.get(i).name.compareTo("v96")!=0 &&
+						variables.get(i).name.compareTo("v99")!=0
+						) {
 					System.out.println(variables.get(i).name);
-				listOnlyChild.add(i);
+					listOnlyChild.add(i);
+				}
 			}
 			
 		}
@@ -2127,11 +2172,12 @@ uht.detect();
 			}
 			
 			//for every incoming edge
-			for(int j=n.fathers.size()-1; j>=0; j--) {
-				pere=n.fathers.get(j).pere;
+			while(n.fathers.size()>0) {
+
+				pere=n.fathers.get(0).pere;
 				uht.removeFromTable(pere);
 				
-				n.fathers.get(j).changerFils(child);
+				n.fathers.get(0).changerFils(child);
 				
 				uht.ajoutSansNormaliser(pere);
 			}
@@ -2140,7 +2186,792 @@ uht.detect();
 		}
 			
 	}
+	
+	//non only child
+	public ArrayList<Integer> getDecisionVariables(boolean verbose) {
+		ArrayList<Integer> listDecisionVariables = new ArrayList<Integer>();
+		
+		ArrayList<NodeDD> list;
+		boolean onlyChild;
+		int idOnlyChild;
+		
+		
+		for(int i=0; i<uht.nbVariables; i++){
+			list=uht.get(i);
+			onlyChild=true;
 
+			fullListLoop:
+			for(NodeDD n:list) {
+				idOnlyChild=-1;
+				
+				for(int j=0; j<n.kids.size(); j++) {
+					if(n.kids.get(j).bottom==0 && n.kids.get(j).actif) {
+						if(idOnlyChild==-1)
+							idOnlyChild=n.kids.get(j).fils.id;
+						else {
+							if(idOnlyChild!=n.kids.get(j).fils.id) {
+								onlyChild=false;
+								break fullListLoop;
+							}
+						}
+					}
+				}
+			}
+			if(!onlyChild) {
+				if(verbose)
+					System.out.println(variables.get(i).name);
+				listDecisionVariables.add(i);
+			}
+			
+		}
+		
+		return listDecisionVariables;
+	}
+	
+	public void learnVariable() {
+		ArrayList<Integer> listDecisionVariables = getDecisionVariables(false);
+		for(int iVarDec=0; iVarDec<listDecisionVariables.size(); iVarDec++) {
+			double entropie=0;
+			
+		}
+	}
+	
+	public void entropie(int aApprendre, int decision) {
+    	Var vDecision=uht.get(decision).get(0).variable;
 
+    	for(int i=0; i<vDecision.domain; i++) {
+    		conditioner(decision, i);
+			minMaxConsistanceMaj(decision, true);
+			toDot("s"+i, false);
+			System.out.println("plop="+entropie(aApprendre));
+			deconditioner(decision);
+    	}
+		
+	}
+	
+	public double entropie(int aApprendre) {
+		double entropie=0;
+    	ArrayList<Integer> counts=new ArrayList<Integer>();
+    	int nbSol=0;
+    	Var v;
+    	
+		if(first.actif && first.bottom==0){
+    		first.fils.counting=1;
+    	}
+    	for(int i=0; i<uht.getLast().size(); i++){
+    		uht.getLast().get(i).counting=1;
+    	}
+    	
+    	//preparation counting
+    	ArrayList<NodeDD> allNodes=uht.get(aApprendre);
+    	for(NodeDD node : allNodes){
+    		counting(node);
+    		for(Arc kid :node.kids) {
+    			if(kid.bottom==0 && kid.actif)
+    				countingFromBottom(kid.fils);
+    		}
+    	}
+    	
+    	//counting
+    	v=allNodes.get(0).variable;
+    	
+    	for(int i=0; i<v.domain; i++) {
+    		int count=0;
+        	for(NodeDD node : allNodes){
+        		if(node.kids.get(i).bottom==0 && node.kids.get(i).actif) {
+        			count+=(node.counting*node.kids.get(i).fils.counting);
+        		}
+        	}
+        	counts.add(count);
+        	nbSol+=count;
+        	System.out.println(v.name + "("+i+"/"+v.domain+") : " + count);
+    	}
+    	System.out.println(v.name + " : " + nbSol);
+
+    	//calcul entropie
+    	for(int i=0; i<v.domain; i++) {
+    		double proba=((double)counts.get(i))/nbSol;
+        	System.out.println(v.name + "("+i+"/"+v.domain+") = " + proba + " * Math.log("+proba+") / Math.log("+v.domain+"))");
+        	if(proba>0) {
+        		System.out.println(v.name + "("+i+"/"+v.domain+") : " + (proba * Math.log(proba) / Math.log(v.domain)));
+        		entropie -= proba * Math.log(proba) / Math.log(v.domain);
+        	}else {
+        		System.out.println(v.name + "("+i+"/"+v.domain+") : " + 0);
+        	}
+        		
+    	}
+    	System.out.println("entropie="+entropie);
+    	
+    	uht.countingToMoinsUn();
+    	
+    	return entropie;
+    	
+	}
+	
+	
+
+    public ArrayList<VarDomainRef> colorUp(int variable, int valeur){
+    	ArrayList<VarDomainRef> listVdr = new ArrayList<VarDomainRef>();
+    	ArrayList<NodeDD> nodes;
+
+		conditioner(variable, valeur);
+		minMaxConsistanceMaj(variable, true);
+    	uht.countingToMoinsUn();
+    	    	
+    	
+    	
+    	for(int i=0; i<uht.get(variable).size(); i++){
+    		if(uht.get(variable).get(i).kidsdiffbottomActif()>0)
+    			uht.get(variable).get(i).counting=0;
+    		else
+    			uht.get(variable).get(i).counting=-1;
+    	}
+    	
+    	for(int i=variable-1; i>=0; i--){
+    		nodes=uht.get(i);
+        	for(int j=0; j<nodes.size(); j++){
+        		colorUp(nodes.get(j), listVdr);
+        	}
+    	}
+    	deconditioner(variable);
+    	
+    	return listVdr;
+    }
     
+	public void colorUp(NodeDD n, ArrayList<VarDomainRef> listVdr){
+		Arc a;
+		long origine=-2; //-2 not found, -1 inactif, 0..x actif
+		boolean allTheSame=true;
+		
+		for(int i=0; i<n.kids.size(); i++) {
+			a=n.kids.get(i);
+			if(a.bottom==0) {
+				
+				//find first diff bottom==0
+				if(origine==-2) {
+					if(a.actif)
+						origine=a.fils.counting;
+					else
+						origine=-1;
+				}
+				else {
+					if((a.actif && a.fils.counting!=origine) || (!a.actif && origine!=-1)) {
+						allTheSame=false;
+						break;
+					}
+				}
+			}
+				
+		}
+		
+		if(allTheSame)
+			n.counting=origine;
+		else {
+			long num;
+			int idx;
+			VarDomainRef vdr=new VarDomainRef(n.variable);
+			//a partir de là, on ecrit !
+			for(int i=0; i<n.kids.size(); i++) {
+				a=n.kids.get(i);
+				if(a.bottom==0 && a.actif) {					
+					num=a.fils.counting;
+					if(num!=-1) {
+						idx=vdr.ref.indexOf(num);
+						if(idx==-1) {
+							vdr.ref.add(num);
+							vdr.domain.add(new ArrayList<Integer>());
+							idx=vdr.ref.size()-1;
+						}
+						vdr.domain.get(idx).add(i);
+					}
+				}
+					
+			}
+			
+			idx=listVdr.indexOf(vdr);
+			if(idx==-1) {
+				listVdr.add(vdr);
+				n.counting=listVdr.size();
+			}else {
+				n.counting=idx+1;
+			}
+			
+		}
+		
+		
+	}
+	
+    public VDD learnUp(Var variable, int valeur, VDD newVDD){
+    	if(newVDD==null) {
+        	UniqueHashTable newUht = new UniqueHashTable(variables.size());
+    		newVDD = new VDD(null, newUht, this.variables);
+    	}
+    	int variablePos=variable.pos;
+    	NodeDD first=null;
+    	NodeDD isNewFirst=null;
+    	
+    	ArrayList<NodeDD> nodes;
+    	
+    	ArrayList<NodeDD> allNewNodes=new ArrayList<NodeDD>();
+    	ArrayList<Var> allNewVar=new ArrayList<Var>();
+
+		conditioner(variablePos, valeur);
+		minMaxConsistanceMaj(variablePos, true);
+    	uht.countingToMoinsUn();
+    	    	
+    	
+    	
+    	for(int i=0; i<uht.get(variablePos).size(); i++){
+    		if(uht.get(variablePos).get(i).kidsdiffbottomActif()>0)
+    			uht.get(variablePos).get(i).counting=0;
+    		else
+    			uht.get(variablePos).get(i).counting=-1;
+    	}
+    	
+    	//newVar new node
+    	NodeDD newNode = new NodeDD(variable);
+		for(int j=0; j<variable.domain; j++){		//domaine : de 0 a x-1
+			Structure s=new Sp();
+			new Arc(newNode, newVDD.last, j, s);		//int donc SLDD+
+			if(j!=valeur)
+				newNode.kids.get(j).bottom++;
+		}
+		newVDD.uht.ajoutSansNormaliser(newNode);
+		allNewNodes.add(newNode);
+		first=newNode;
+		allNewVar.add(variable);
+    	
+    	
+    	for(int i=variablePos-1; i>=0; i--){
+    		nodes=uht.get(i);
+        	for(int j=0; j<nodes.size(); j++){
+        		isNewFirst=learnUp(nodes.get(j), newVDD, allNewNodes, allNewVar);
+        		if(isNewFirst!=null)
+        			first=isNewFirst;
+        	}
+    	}
+    	deconditioner(variable);
+    	
+    	//make newVDD real
+    	if(first==null) {
+    		first=newVDD.last;
+    	}
+    	newVDD.first = new Arc(first, true);
+    	newVDD.variables=allNewVar;
+    	newVDD.uht.ajoutSansNormaliser(newVDD.last);
+    	
+    	newVDD.toDot(variable.name+"_"+valeur, false);
+    	return newVDD;
+    }
+    
+	public NodeDD learnUp(NodeDD n, VDD newVDD, ArrayList<NodeDD> allNewNodes, ArrayList<Var> allNewVar){
+		Arc a;
+		long origine=-2; //-2 not found, -1 inactif, 0..x actif
+		boolean allTheSame=true;
+		
+		for(int i=0; i<n.kids.size(); i++) {
+			a=n.kids.get(i);
+			if(a.bottom==0) {
+				
+				//find first diff bottom==0
+				if(origine==-2) {
+					if(a.actif)
+						origine=a.fils.counting;
+					else
+						origine=-1;
+				}
+				else {
+					if((a.actif && a.fils.counting!=origine) || (!a.actif && origine!=-1)) {
+						allTheSame=false;
+						break;
+					}
+				}
+			}
+				
+		}
+		
+		if(allTheSame)
+			n.counting=origine;
+		else {
+			int num;
+			//add var
+			if(allNewVar.indexOf(n.variable)==-1)
+				allNewVar.add(n.variable);
+			
+			//add node
+			NodeDD newNode = new NodeDD(n.variable);
+			
+			for(int i=0; i<n.kids.size(); i++) {
+				Structure s=new Sp();
+
+				//old arc
+				a=n.kids.get(i);
+				if(a.bottom==0 && a.actif) {					
+					num=(int)a.fils.counting;
+					//new arc
+					if(num!=-1) {
+						new Arc(newNode, allNewNodes.get(num), i, s);		//int donc SLDD+
+					}else {
+						new Arc(newNode, newVDD.last, i, s);		//int donc SLDD+
+						newNode.kids.get(i).bottom++;
+					}
+				}else {
+					new Arc(newNode, newVDD.last, i, s);		//int donc SLDD+
+					newNode.kids.get(i).bottom++;
+				}
+			}
+			
+			//add newNode to uht
+			int cptNode=newVDD.uht.get(n.variable.pos).size();
+			newVDD.uht.ajoutSansNormaliser(newNode);
+			if(newVDD.uht.get(n.variable.pos).size()>cptNode) {
+				allNewNodes.add(newNode);
+			}
+			n.counting=allNewNodes.size()-1;
+
+			
+			
+			return newNode;	
+		}
+		
+		return null;
+		
+		
+	}
+	
+	public void mergeFatherCommun_localmap_lastNode() {
+		
+		ArrayList<NodeDD> nodes;
+		ArrayList<Arc> fathers;
+
+		Arc arcX;
+		NodeDD pereX;
+		NodeDD frerotCurr;
+		
+		nodes = uht.getLast();
+		for(NodeDD node:nodes) {
+			//remove and save
+			
+			fathers=(ArrayList<Arc>) node.fathers.clone();
+			for(Arc father:fathers) {
+				int pos=father.pos;
+				pereX=father.pere.adresse;
+				arcX=pereX.kids.get(pos);
+				//pas encore de duplication
+				if(arcX.bottom>0) {
+					father.bottom++;
+					father.changerFils(uht.getLast().get(0));
+				}
+			}
+			
+			
+		}
+		
+	}
+	
+	public ArrayList<NodeDD> mergeFatherCommun_localmap(int posInOrder) {
+		Map<NodeDD, NodeDD> adresseMap = null;
+		ArrayList<NodeDD> savelist=new ArrayList<NodeDD>();
+		
+		ArrayList<NodeDD> nodes;
+		ArrayList<Arc> fathers;
+
+		Arc arcX;
+		NodeDD pereX;
+		NodeDD frerotCurr;
+		
+		if(posInOrder<uht.nbVariables) {
+			//node:pas en commun && father : variable en commun
+			nodes=(ArrayList<NodeDD>) uht.get(posInOrder).clone();
+		}else {
+			mergeFatherCommun_localmap_lastNode();
+			nodes=new ArrayList<NodeDD>();
+		}
+		for(NodeDD node:nodes) {
+			//remove and save
+			
+			fathers=(ArrayList<Arc>) node.fathers.clone();
+			for(Arc father:fathers) {
+				int pos=father.pos;
+				pereX=father.pere.adresse;
+				arcX=pereX.kids.get(pos);
+				//pas encore de duplication
+				if(arcX.bottom>0) {
+					father.bottom++;
+					father.changerFils(uht.getLast().get(0));
+				}else {
+					//pas encore de duplication
+					if(node.adresse==null) {
+						node.adresse=arcX.fils;
+					}else{		//duplication?
+						if(arcX.fils!=node.adresse){
+							
+							////////////////////
+							//init if needeed
+							if(adresseMap==null)
+								adresseMap=new HashMap<NodeDD, NodeDD>();
+							
+							frerotCurr=adresseMap.get(arcX.fils);
+							if(frerotCurr==null) {
+								
+								frerotCurr=new NodeDD(node, father);
+								frerotCurr.cpt=1;
+								adresseMap.put(arcX.fils, frerotCurr);
+								
+								savelist.add(frerotCurr);
+
+							}else {
+								father.changerFils(frerotCurr);
+							}
+							frerotCurr.adresse=arcX.fils;
+								
+			    			
+						}
+						
+					}
+				}
+			}
+			
+			if(node.fathers.size()==0){
+    			//node.cpt=-1;
+    			uht.removeDefinitely(node);
+			}else {
+				uht.removeFromTable(node);
+				savelist.add(node);
+			}
+			
+			if(adresseMap!=null)
+				adresseMap.clear();
+		}
+		
+		return savelist;
+	}
+	
+	public ArrayList<NodeDD> mergeFatherNotCommun_localmap(int posInOrder) {
+		Map<NodeDD, NodeDD> adresseMap = null;
+		ArrayList<NodeDD> savelist=new ArrayList<NodeDD>();
+
+		ArrayList<NodeDD> nodes;
+		ArrayList<Arc> fathers;
+
+		Arc arcX;
+		NodeDD pereX;
+		NodeDD frerotCurr;
+		
+		//node:pas en commun && father : variable en commun
+		nodes=(ArrayList<NodeDD>) uht.get(posInOrder).clone();
+		for(NodeDD node:nodes) {
+			fathers=(ArrayList<Arc>) node.fathers.clone();
+			for(Arc father:fathers) {
+				int pos=father.pos;
+				pereX=father.pere.adresse;
+				//pas encore de duplication
+
+				if(node.adresse==null) {
+					node.adresse=pereX;
+				}else{		//duplication?
+					if(pereX!=node.adresse){
+						
+						////////////////////
+						//init if needeed
+						if(adresseMap==null)
+							adresseMap=new HashMap<NodeDD, NodeDD>();
+						
+						frerotCurr=adresseMap.get(pereX);
+						if(frerotCurr==null) {
+							frerotCurr=new NodeDD(node, father);
+							frerotCurr.cpt=1;
+							adresseMap.put(pereX, frerotCurr);
+							savelist.add(frerotCurr);
+						}else {
+							father.changerFils(frerotCurr);
+						}
+						frerotCurr.adresse=pereX;	
+					}
+					
+				}
+			}
+			if(node.fathers.size()==0){
+    			//node.cpt=-1;
+    			uht.removeDefinitely(node);
+			}else {
+				uht.removeFromTable(node);
+				savelist.add(node);
+			}
+			
+			if(adresseMap!=null)
+				adresseMap.clear();
+		}
+	
+		return savelist;
+	}
+	
+	public ArrayList<NodeDD> mergeAllCase(int posInOrder) {
+		Map<NodeDD, NodeDD> adresseMap = null;
+		ArrayList<NodeDD> savelist=new ArrayList<NodeDD>();
+		
+		ArrayList<NodeDD> nodes;
+		ArrayList<Arc> fathers;
+
+		Arc arcX;
+		NodeDD pereX;
+		NodeDD frerotCurr;
+		
+		if(posInOrder<uht.nbVariables) {
+			//node:pas en commun && father : variable en commun
+			nodes=(ArrayList<NodeDD>) uht.get(posInOrder).clone();
+		}else {
+			/////////////////  cas last node //////////////
+			nodes = uht.getLast();
+			for(NodeDD node:nodes) {
+				//remove and save
+				
+				fathers=(ArrayList<Arc>) node.fathers.clone();
+				for(Arc father:fathers) {
+					int pos=father.pos;
+					pereX=father.pere.adresse;
+					if(!pereX.isLeaf()) {
+						arcX=pereX.kids.get(pos);
+						//pas encore de duplication
+						if(arcX.bottom>0) {
+							father.bottom++;
+							father.changerFils(uht.getLast().get(0));
+						}
+					}
+				}
+				
+				
+			}
+			nodes=new ArrayList<NodeDD>();
+			return nodes;
+			/////////////////////////////////////////////
+		}
+		for(NodeDD node:nodes) {
+			//remove and save
+			
+			fathers=(ArrayList<Arc>) node.fathers.clone();
+			for(Arc father:fathers) {
+				int pos=father.pos;
+				pereX=father.pere.adresse;
+				
+				if(!pereX.isLeaf() && pereX.variable.equals(father.pere.variable)) {
+					/////////////////////cas father commun ////////////////////////////
+					arcX=pereX.kids.get(pos);
+					//pas encore de duplication
+					if(arcX.bottom>0) {
+						father.bottom++;
+						father.changerFils(uht.getLast().get(0));
+					}else {
+						//pas encore de duplication
+						if(node.adresse==null) {
+							node.adresse=arcX.fils;
+						}else{		//duplication?
+							if(arcX.fils!=node.adresse){
+								
+								////////////////////
+								//init if needeed
+								if(adresseMap==null)
+									adresseMap=new HashMap<NodeDD, NodeDD>();
+								
+								frerotCurr=adresseMap.get(arcX.fils);
+								if(frerotCurr==null) {
+									
+									frerotCurr=new NodeDD(node, father);
+									frerotCurr.cpt=1;
+									adresseMap.put(arcX.fils, frerotCurr);
+									
+									savelist.add(frerotCurr);
+	
+								}else {
+									father.changerFils(frerotCurr);
+								}
+								frerotCurr.adresse=arcX.fils;
+									
+				    			
+							}
+							
+						}
+					}
+					/////////////////////////////////////////////////
+				}else {							
+					//////////////cas father pas comun /////////////
+					if(node.adresse==null) {
+						node.adresse=pereX;
+					}else{		//duplication?
+						if(pereX!=node.adresse){
+							
+							////////////////////
+							//init if needeed
+							if(adresseMap==null)
+								adresseMap=new HashMap<NodeDD, NodeDD>();
+							
+							frerotCurr=adresseMap.get(pereX);
+							if(frerotCurr==null) {
+								frerotCurr=new NodeDD(node, father);
+								frerotCurr.cpt=1;
+								adresseMap.put(pereX, frerotCurr);
+								savelist.add(frerotCurr);
+							}else {
+								father.changerFils(frerotCurr);
+							}
+							frerotCurr.adresse=pereX;	
+						}
+						
+					}
+					////////////////////////////////////////////////
+				}
+			}
+			
+			if(node.fathers.size()==0){
+    			//node.cpt=-1;
+    			uht.removeDefinitely(node);
+			}else {
+				uht.removeFromTable(node);
+				savelist.add(node);
+			}
+			
+			if(adresseMap!=null)
+				adresseMap.clear();
+		}
+		
+		return savelist;
+	}
+	
+
+	//todo add valued data
+	public void merge(VDD X) {
+		ArrayList<NodeDD> nodes;
+		ArrayList<ArrayList<NodeDD>> savelist = new ArrayList<ArrayList<NodeDD>>();
+
+		NodeDD startNode=X.first.fils;
+		Var startVar=X.variables.get(0);
+		Var endVar=X.variables.get(X.variables.size()-1);
+		
+		//var 1
+		
+		nodes=uht.get(startVar.pos);
+		
+		for(NodeDD node:nodes) {
+			node.adresse=startNode;
+			uht.removeFromTable(node);
+		}
+		savelist.add(nodes);
+		
+		/*for(int i=startVar.pos; i<=endVar.pos; i++) {
+			if(X.variables.indexOf(this.variables.get(i))!=-1)
+				savelist.add(mergeFatherCommun_localmap(i+1));
+			else
+				savelist.add(mergeFatherNotCommun_localmap(i+1));
+		}*/
+		for(int i=startVar.pos; i<=endVar.pos; i++) {
+				savelist.add(mergeAllCase(i+1));
+		}
+		
+		for(int i=savelist.size()-1; i>=0; i--) {
+			for(int j=0; j<savelist.get(i).size(); j++) {
+				uht.ajoutNormaliseReduit(savelist.get(i).get(j));
+			}
+		}
+		
+		uht.copieToNull();
+
+		uht.supprNeudNegatifs();
+		
+	}
+	    	    		
+	
+	
+	public void merge_r(NodeDD node) {
+		NodeDD nodeX=node.adresse;
+		Map<NodeDD, NodeDD> adresseMap = null;
+
+		int pos;
+		NodeDD fils;
+		NodeDD filsX;
+		NodeDD frerotCurr;
+		
+		//node:pas en commun && father : variable en commun		
+		for(Arc kid:node.kids) {
+			if(kid.bottom==0) {
+				pos=kid.pos;
+				fils=kid.fils;
+				
+				if(nodeX.kids.get(pos).bottom>0)
+					kid.bottom++;
+				else {
+					if(nodeX.variable==node.variable)
+						filsX=nodeX.kids.get(pos).fils;
+					else
+						filsX=nodeX;
+					
+					if(fils.adresse==null) {
+						fils.adresse=filsX;
+						if(!filsX.isLeaf()) {
+							uht.removeFromTable(fils);
+							merge_r(fils);
+							uht.ajoutSansNormaliser(fils);
+						}
+						
+					}else{		//duplication?
+						if(fils.adresse!=filsX){
+								
+							////////////////////
+							//init if needeed
+							if(adresseMap==null)
+								adresseMap=new HashMap<NodeDD, NodeDD>();
+							
+							frerotCurr=adresseMap.get(filsX);
+							if(frerotCurr==null) {
+								frerotCurr=new NodeDD(fils, kid);
+								frerotCurr.cpt=1;
+								frerotCurr.adresse=filsX;
+								
+								if(!filsX.isLeaf()) {
+									merge_r(frerotCurr);
+								}
+								uht.ajoutSansNormaliser(frerotCurr);
+								adresseMap.put(filsX, frerotCurr);
+		
+							}else {
+								kid.changerFils(frerotCurr);
+							}
+										        		
+							
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	//todo add valued data
+	//not working : see merge()
+	public void merge_init(VDD X) {
+		ArrayList<NodeDD> nodes;
+
+		NodeDD startNode=X.first.fils;
+		Var startVar=X.variables.get(0);
+		Var endVar=X.variables.get(X.variables.size()-1);
+		
+		//var 1
+		
+		nodes=uht.get(startVar.pos);
+		
+		for(NodeDD node:nodes) {
+			node.adresse=startNode;
+		}
+		
+		for(NodeDD node:nodes) {
+			uht.removeFromTable(node);
+			merge_r(node);
+			uht.ajoutSansNormaliser(node);
+		}
+		uht.copieToNull();
+		
+
+		
+	}
+	    		
+
 }

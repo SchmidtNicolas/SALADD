@@ -17,6 +17,7 @@ package compilateur;
  */
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Var {
 	public String name;
@@ -25,8 +26,13 @@ public class Var {
 	
 	public int domain;
 	public ArrayList<String> valeurs;
-//	public int indValNeg=-1;			//au cas ou on est une val negative
 	public boolean [] consVal;
+	
+	public boolean inGraph=true;
+	public ArrayList<ArrayList<VarDomainRef>> formule=null;
+	public Constraint constraint=null;
+	
+	
 	
 	public Var(String n, int i){
 		name=n;
@@ -51,14 +57,6 @@ public class Var {
 		consVal=new boolean[domain];
 	}
 	
-/*	public void ajout(ArrayList<String> liste, int indice){
-		
-		domain=liste.size();
-		for(int i=0; i<domain; i++)
-			valeurs.add(liste.get(i).trim());
-		indValNeg=indice;
-		consVal=new boolean[domain];
-	}*/
 	
 	/**
 	 * renvoie la valeur correspondante a son emplacement dans le domaine
@@ -121,5 +119,14 @@ public class Var {
 	public void setDefaultValues() {
 		for(int i=0; i<domain; i++)
 			valeurs.add(""+i);
+	}
+	
+	public void setOnlyChildFormula(ArrayList<VarDomainRef> VDR, int val) {
+		//init
+		if(formule==null) {
+			formule=new ArrayList<ArrayList<VarDomainRef>>(Collections.nCopies(this.domain, null));	
+		}
+		
+		formule.set(val, VDR);
 	}
 }

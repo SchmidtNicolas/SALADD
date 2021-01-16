@@ -17,6 +17,7 @@ package compilateur;
  */
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class NodeDD{
 	
@@ -31,6 +32,7 @@ public class NodeDD{
 	protected ArrayList<Integer> indcopie;
 	//protected ArrayList<Structure> structcopie;
 	protected NodeDD adresse;
+	protected Map<NodeDD, NodeDD> adresseMap;
 	
 	protected int cpt;
 	protected long counting=-1;
@@ -71,6 +73,8 @@ public class NodeDD{
 	    	    
 	    aRemonter=null;
 	    adresse=null;
+	    adresseMap=null;
+
 	}
 	
 	public NodeDD(Var var, int ident){
@@ -89,6 +93,7 @@ public class NodeDD{
 	    	    
 	    aRemonter=null;
 	    adresse=null;
+	    adresseMap=null;
 	}
 	
 
@@ -116,6 +121,7 @@ public class NodeDD{
 	    
 	    aRemonter=null;
 	    adresse=null;
+	    adresseMap=null;
 	 }
 			
 	//methodes
@@ -1007,6 +1013,9 @@ public class NodeDD{
     	//for(int i=0; i<this.indcopie.size(); i++)
     	//	s+="_"+this.indcopie.get(i);
     	
+    	//if(this.counting>=0)
+    	//	s+="_"+counting;
+    	
    		s+="];\n";
     		if(!this.isLeaf()){
     			for(int i=(this.kids.size()-1); i>=0; i--)
@@ -1052,7 +1061,7 @@ public class NodeDD{
 		return true;
 	}
 	
-	public int kidsdiffbottom(){
+	public int kidsdiffbottomActif(){
 		int cpt=0;
 		for(int i=0; i<kids.size(); i++)
 			if(kids.get(i).bottom==0 && kids.get(i).actif)
@@ -1060,12 +1069,22 @@ public class NodeDD{
 		return cpt;
 	}
 	
+	public int kidsdiffbottom(){
+		int cpt=0;
+		for(int i=0; i<kids.size(); i++)
+			if(kids.get(i).bottom==0)
+				cpt++;
+		return cpt;
+	}
+	
+	
 	public void copieToNull()
 	{
 		copie.clear();
 		indcopie.clear();
 		aRemonter=null;
-		adresse=null;
+	    adresse=null;
+	    adresseMap=null;
 	}
 	
 }
