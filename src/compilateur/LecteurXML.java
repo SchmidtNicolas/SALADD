@@ -1176,7 +1176,8 @@ public void lectureCNF(String nomFichier, ConstraintsNetwork cn){
 					break;
 				
 				nbConstraintsfinals = Integer.parseInt(args[3]);
-								
+				nbVariables=Integer.parseInt(args[2]);
+				
 				cn.setVar(addAllVariablesAsBoolean(nbVariables));
 				
 				asStarted=true;
@@ -1189,7 +1190,7 @@ public void lectureCNF(String nomFichier, ConstraintsNetwork cn){
 						contraiteBrute.add(elemint);
 					}
 					else {
-						addContraintCNF(contraiteBrute);
+						addContraintCNF(contraiteBrute, cn);
 						contraiteBrute.clear();
 					}
 				}
@@ -1214,15 +1215,15 @@ public void lectureCNF(String nomFichier, ConstraintsNetwork cn){
 	public ArrayList<Var> addAllVariablesAsBoolean(int nbVar) {
 		ArrayList<Var> var=new ArrayList<Var>();
 		
-		for(int i=0; i<nbVar; i++) {
-			Var v=new Var("v"+String.valueOf(i), i);
+		for(int i=1; i<=nbVar; i++) {
+			Var v=new Var("v"+String.valueOf(i), i-1);
 			v.setBoolean();
 			var.add(v);
 		}
 		return var;
 	}
 	
-	public void addContraintCNF(ArrayList<Integer> contraiteBrute){
+	public void addContraintCNF(ArrayList<Integer> contraiteBrute, ConstraintsNetwork cn){
 
 		int id=nbConstraints;
 		
@@ -1234,17 +1235,19 @@ public void lectureCNF(String nomFichier, ConstraintsNetwork cn){
 		Tuple tuple=new Tuple();
 		for(int i=0; i<c.arity; i++){
 			if(contraiteBrute.get(i)>0)
-				tuple.add(1);
+				tuple.add(0);				//support 1 => conflict 0
 			else
-				tuple.add(0);
+				tuple.add(1);
 		}
 		tuple.poid=new Sp(0);
 		
 		for(int i=0; i<c.arity; i++){
-			c.scopeVar.add(cn.getVarID(Math.abs(contraiteBrute.get(i))));
+			c.scopeVar.add(cn.getVarID(Math.abs(contraiteBrute.get(i))-1));
 		}
+		c.cons.add(tuple);
 		
 		nbConstraints++;
+		cn.addCons(c);
 	}
 
 

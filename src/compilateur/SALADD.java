@@ -78,10 +78,10 @@ public class SALADD {
 	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillée : '2')
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(String file_name, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, int arg_affich_text){
+	public void compilation(String file_name, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
 		ArrayList<String> s=new ArrayList<String>();
 		s.add(file_name);
-		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, arg_affich_text);
+		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, arg_affich_text);
 	}
 	/**
 	 * Compilation du fichier de contraintes file_name avec votre heuristique d'ordonnancement de variables perso
@@ -96,10 +96,10 @@ public class SALADD {
 	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillée : '2')
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(String file_name, boolean arg_plus, HeuristiqueVariable arg_heuristique, int arg_heuristique_cons, int arg_affich_text){
+	public void compilation(String file_name, boolean arg_plus, HeuristiqueVariable arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
 		ArrayList<String> s=new ArrayList<String>();
 		s.add(file_name);
-		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, arg_affich_text);
+		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, arg_affich_text);
 	}
 	/**
 	 * Compilation du fichier de contraintes file_name avec votre heuristique d'ordonnancement de contraintes perso
@@ -113,10 +113,10 @@ public class SALADD {
 	 * @param arg_heuristique_cons : votre heuristique personnelle
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(String file_name, boolean arg_plus, int arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, int arg_affich_text){
+	public void compilation(String file_name, boolean arg_plus, int arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
 		ArrayList<String> s=new ArrayList<String>();
 		s.add(file_name);
-		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, arg_affich_text);
+		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, arg_affich_text);
 	}
 	/**
 	 * Compilation du fichier de contraintes file_name avec votre heuristique d'ordonnancement de variables et de contraintes
@@ -129,10 +129,10 @@ public class SALADD {
 	 * @param arg_heuristique_cons : votre heuristique personnelle
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(String file_name, boolean arg_plus, HeuristiqueVariable arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, int arg_affich_text){
+	public void compilation(String file_name, boolean arg_plus, HeuristiqueVariable arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
 		ArrayList<String> s=new ArrayList<String>();
 		s.add(file_name);
-		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, arg_affich_text);
+		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, arg_affich_text);
 	}
 	/**
 	 * Compilation du (ou des) fichier(s) de contraintes file_names
@@ -146,7 +146,7 @@ public class SALADD {
 	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillée : '2')
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(ArrayList<String> file_names, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, int arg_affich_text){
+	public void compilation(ArrayList<String> file_names, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
 		HeuristiqueVariable[] heuristiquesVariables = {
 				new HeuristiqueVariableOrdreRandom(),
 				new HeuristiqueVariableOrdreChoisi(),
@@ -162,7 +162,7 @@ public class SALADD {
 				new HeuristiqueContraintesBCF(),
 				new HeuristiqueContraintesDomaineMaxDomaineMaxEcartMaxHardFirst(),
 				new HeuristiqueContraintesDurete()};
-		compilation(file_names, arg_plus, heuristiquesVariables[arg_heuristique+1], heuristiquesContraintes[arg_heuristique_cons+2], arg_affich_text);
+		compilation(file_names, arg_plus, heuristiquesVariables[arg_heuristique+1], heuristiquesContraintes[arg_heuristique_cons+2], flag_learnup, arg_affich_text);
 
 	}
 	/**
@@ -177,7 +177,7 @@ public class SALADD {
 	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillée : '2')
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(ArrayList<String> file_names, boolean arg_plus, HeuristiqueVariable arg_heuristique, int arg_heuristique_cons, int arg_affich_text){
+	public void compilation(ArrayList<String> file_names, boolean arg_plus, HeuristiqueVariable arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
 		HeuristiqueContraintes[] heuristiquesContraintes = {
 				new HeuristiqueContraintesInversion(), 
 				new HeuristiqueContraintesRandom(),
@@ -185,7 +185,7 @@ public class SALADD {
 				new HeuristiqueContraintesBCF(),
 				new HeuristiqueContraintesDomaineMaxDomaineMaxEcartMaxHardFirst(),
 				new HeuristiqueContraintesDurete()};
-		compilation(file_names, arg_plus, arg_heuristique, heuristiquesContraintes[arg_heuristique_cons+2], arg_affich_text);
+		compilation(file_names, arg_plus, arg_heuristique, heuristiquesContraintes[arg_heuristique_cons+2], flag_learnup, arg_affich_text);
 
 	}
 	/**
@@ -200,7 +200,7 @@ public class SALADD {
 	 * @param arg_heuristique_cons : votre heuristique personnelle
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(ArrayList<String> file_names, boolean arg_plus, int arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, int arg_affich_text){
+	public void compilation(ArrayList<String> file_names, boolean arg_plus, int arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
 		HeuristiqueVariable[] heuristiquesVariables = {
 				new HeuristiqueVariableOrdreRandom(),
 				new HeuristiqueVariableOrdreChoisi(),
@@ -209,7 +209,7 @@ public class SALADD {
 				new HeuristiqueVariableMCSinv(),
 				new HeuristiqueVariableMCSinvPlusUn(),
 				new HeuristiqueVariableForce()};
-		compilation(file_names, arg_plus, heuristiquesVariables[arg_heuristique+1], arg_heuristique_cons, arg_affich_text);
+		compilation(file_names, arg_plus, heuristiquesVariables[arg_heuristique+1], arg_heuristique_cons, flag_learnup, arg_affich_text);
 	}
 
 
@@ -224,7 +224,7 @@ public class SALADD {
 	 * @param arg_heuristique_cons : votre heuristique personnelle
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(ArrayList<String> file_names, boolean arg_plus, HeuristiqueVariable arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, int arg_affich_text){
+	public void compilation(ArrayList<String> file_names, boolean arg_plus, HeuristiqueVariable arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup,int arg_affich_text){
 		
 		isHistorique=false;
 		
@@ -261,11 +261,14 @@ public class SALADD {
 		cn.removeUselessConstraints();
 		System.out.println("//removeUselessVariables");
 		cn.removeUselessVariables();
-		System.out.println("//removeVariablesInOnlyOneConstraint");
-		cn.removeVariablesInOnlyOneConstraint();
+		//System.out.println("//removeVariablesInOnlyOneConstraint");
+		//cn.removeVariablesInOnlyOneConstraint();
 		System.out.println("//reordoner");
 		cn.reordoner(arg_heuristique, false);			//<---
+		System.out.println("//compileNotUsedVariables");
+		cn.compileNotUsedVariables();
 		System.out.println("//fin pretraintement");
+		
 		
 		
 		UniqueHashTable uht=new UniqueHashTable(cn.nbVariables);
@@ -297,6 +300,9 @@ public class SALADD {
 			System.out.print(" "+ordre.get(i).name);
 		System.out.println();
 	
+		start= System.currentTimeMillis();
+		
+		ArrayList<Var> unlearnableVar=new ArrayList<Var>();
 		for(int i=0; i<cn.nbConstraints; i++){
 			
 			//if(i==15)
@@ -327,15 +333,44 @@ public class SALADD {
 				}*/
 				
 				 ///////////////////
-				c.toVDD(true);
+				c.toVDD(true, null);
 				//c.vdd.toDot("a"+i+"_"+c.name, false);
 				//x.merge_init(c.vdd);
-				x.merge(c.vdd);
+				x.merge(c.vdd);						
+				
 				
 				//x.toDot("a"+i+"_"+c.name+"_", false);
 				if(arg_affich_text>=2){
 					end=System.currentTimeMillis();
-					System.out.println(i+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s " + c.name + " "+ c.computPercentOfRefusedTuples() +"%");
+					System.out.print(i+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s " + c.name + " "+ c.computPercentOfRefusedTuples() +"%");
+					countRemovedVar();
+					System.out.println();
+					//save(c.name);
+				}
+				//x.toDot("a"+i+"_"+c.name+"_", false);
+				
+				//x.toDot("a"+i+"_"+c.name+"_", false);
+				if(flag_learnup) {
+					ArrayList<Integer> ocp = x.getOnlyChildParents(false);
+					for(Var v:c.scopeVar){
+						if(ocp.contains(v.pos) && !unlearnableVar.contains(v)) {
+							boolean removable=true;
+							for(int j=i+1; j<cn.nbConstraints; j++){
+								if(cn.getCons(j).scopeVar.contains(v)) {
+									removable = false;
+									break;
+								}
+							}
+							if(removable) {
+								x.minMaxConsistance();
+				        		v.saveLearnedGraph(x.learnUp_all(v, null));
+				        		unlearnableVar.addAll(v.graphLearned.variables);
+				        		v.inGraph=false;
+				    			x.forgetOnlyChildParents(v.pos);
+							}
+						}
+					}
+					//x.toDot("a"+i+"_"+c.name+"__", false);
 				}
 				///////////////////////////
 			}
@@ -530,7 +565,7 @@ public class SALADD {
 			
 			c=cn.getCons(i);
 			
-			c.toVDD(true);
+			c.toVDD(true, null);
 			
 			x.merge(c.vdd);
 			
@@ -547,13 +582,13 @@ public class SALADD {
 	}
 	
 	
-	protected void procedureCompilation(ArrayList<String> FichiersACompiler, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, String arg_formefinale, String arg_FichierSortie, boolean flag_fichierSortie, boolean flag_beg, int arg_affich_text){
+	protected void procedureCompilation(ArrayList<String> FichiersACompiler, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, String arg_formefinale, String arg_FichierSortie, boolean flag_fichierSortie, boolean flag_beg, boolean flag_learnup, int arg_affich_text){
 		
 		long start= System.currentTimeMillis();
 //			long end;
 		
 
-		compilation(FichiersACompiler, arg_plus, arg_heuristique, arg_heuristique_cons, arg_affich_text);
+		compilation(FichiersACompiler, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, arg_affich_text);
 		
 		//affiche les resultats, es supprim les noeuds beg si besoin
 		
@@ -585,6 +620,21 @@ public class SALADD {
 		LecteurDot l=new LecteurDot(file_name);
 		x=l.getVDD();
 		
+		if(arg_affich_text>=1)
+			System.out.println("chargement " + x.uht.size() + " (" + x.uht.sizeArcs() + ")");
+	}
+	
+	/**
+	 * chargement d'un fichier dot representant un diagram de decision issue de cnf2obdd
+	 * 
+	 * @param file_name : chemin/nom du fichier d'historique a compiler (extention incluse)
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 */
+	public void chargementOBDD(String file_name, int arg_affich_text){
+		LecteurDotOBDD l=new LecteurDotOBDD(file_name);
+		x=l.getVDD();
+		cn = new ConstraintsNetwork();
+		cn.setVar(x.variables);
 		if(arg_affich_text>=1)
 			System.out.println("chargement " + x.uht.size() + " (" + x.uht.sizeArcs() + ")");
 	}
@@ -734,7 +784,7 @@ public class SALADD {
 	 */
 	public Map<String, Double> recomandation(String var, MethodeOubli methodeOubli, ArrayList<String> possibles){
 		if(isHistorique){
-			Var v=x.getVar(var);
+			Var v=cn.getVar(var);
 			return methodeOubli.recommandation(v, historiqueOperations, x, possibles);
 		}else{
 			System.out.println("la fonction recomandation() ne conscerne que le traitement des historiques");
@@ -759,11 +809,11 @@ public class SALADD {
 		if(possibles == null)
 		{
 			possibles = new ArrayList<String>();
-			possibles.addAll(x.getVar(var).valeurs);
+			possibles.addAll(cn.getVar(var).valeurs);
 		}
 		
 		if(isHistorique){
-			Var v=x.getVar(var);
+			Var v=cn.getVar(var);
 			return methode.recommandation(v, historiqueOperations, x, possibles);
 		}else{
 			System.out.println("la fonction recomandation() ne conscerne que le traitement des historiques");
@@ -781,7 +831,7 @@ public class SALADD {
 	 * @return une associassion valeurs probabilité
 	 */
 	public Map<String, Double> calculeDistributionAPosteriori(String var, ArrayList<String> possibles){
-		Var v=x.getVar(var);
+		Var v=cn.getVar(var);
 //		return x.calculeDistributionAPosteriori(v, historiqueOperations, values);
 		if(possibles!=null)
 			return x.inferenceOnPossibleDomain(v, possibles);
@@ -806,7 +856,7 @@ public class SALADD {
 	 */
 	public Var getVar(String var)
 	{
-		return x.getVar(var);
+		return cn.getVar(var);
 	}
 	
 	/**
@@ -846,10 +896,10 @@ public class SALADD {
 	 * 
 	 * @param problemName : chemin/nom du fichier a compiler (extention incluse)
 	 */
-    public void readProblem(String problemName){
+    public void readProblem(String problemName, boolean flag_learnup){
     	ArrayList<String> list=new ArrayList<String>();
     		list.add(problemName);
-    	readProblem(list);
+    	readProblem(list, flag_learnup);
     }
 
     /**
@@ -860,7 +910,7 @@ public class SALADD {
      * 
      * @param problemName : chemin/nom des fichiers a compiler (extention incluse)
      */
-    public void readProblem(ArrayList<String> problemName){
+    public void readProblem(ArrayList<String> problemName, boolean flag_learnup){
     	String filename=""; 
     	for(int i=0; i<problemName.size(); i++)		
     		filename+=problemName.get(i)+"_";
@@ -874,7 +924,7 @@ public class SALADD {
     				inX=filename;
     				}else{
     					System.out.println("compilation (attention, cette operation peut prendre plusieurs minutes)");																				//sinon heuristique 5
-    					procedureCompilation(problemName, true,  3, 2, "", (filename+"_compiled"), true, true, 0);
+    					procedureCompilation(problemName, true,  3, 2, "", (filename+"_compiled"), true, true, flag_learnup, 0);
     					inX=filename;
     				}
     			}else{
@@ -883,12 +933,37 @@ public class SALADD {
     			}
     	}
     
+    	public void propagationOnRemovedVar() {
+    		x.uht.copieToNull();
+			for(Var v:cn.getVar()) {
+				if(!v.inGraph) {
+					v.consValTofalse();
+					for(int i=0; i<v.domain; i++) {
+						//v.consVal[i]=x.modelChecking_init(v.graphPerDomainvalue[i]);
+						v.consVal[i]=x.modelChecking_init(v.graphLearned, i);
+					}
+				}
+			}
+			
+			for(Var v:cn.getRemovedVar()) {
+				if(!v.inGraph) {
+					v.consValTofalse();
+					for(int i=0; i<v.domain; i++) {
+						//v.consVal[i]=x.modelChecking_init(v.graphPerDomainvalue[i]);
+						v.consVal[i]=x.modelChecking_init(v.graphLearned, i);
+					}
+				}
+			}
+    	}
+    
     	/**
     	 * propagation complette.
     	 * cette methode doit être appelée apres les fonctions readProblem() compilation() reinitializeInState() et reinitialisation()
     	 */
 		public void propagation(){
 			x.minMaxConsistance();
+			
+			propagationOnRemovedVar();
 		}
 
 		//public void assignAndPropagate(String var, String val){
@@ -896,9 +971,16 @@ public class SALADD {
     		if(!isPresentInCurrentDomain(var, val))
     			System.out.println(val+" non presente dans "+var+". aucune operation effectue...");
     		else{
-	    		Var v=x.getVar(var);
-				x.conditioner(v, v.conv(val));
-				x.minMaxConsistance();
+	    		Var v=cn.getVar(var);
+	    		if(v.inGraph) {
+	    			x.conditioner(v, v.conv(val));
+	    		}else {
+	    			//x.merge(v.graphPerDomainvalue[v.conv(val)]);
+	    			x.merge(v.graphLearned, v.conv(val));
+	    			v.consValTofalse();
+	    			v.consVal[v.conv(val)]=true;
+	    		}
+	    		propagation();
     		}
     	}
     	
@@ -919,9 +1001,50 @@ public class SALADD {
     			z = 1/z;
     		}
     		else{
-	    		Var v=x.getVar(var);
-				x.conditioner(v, v.conv(val));
-				x.minMaxConsistanceMaj(v.pos, true);
+	    		Var v=cn.getVar(var);
+	    		if(v.inGraph) {
+	    			x.conditioner(v, v.conv(val));
+	    			x.minMaxConsistanceMaj(v.pos, true);
+	    		}else {
+	    			//x.merge(v.graphPerDomainvalue[v.conv(val)]);
+	    			x.merge(v.graphLearned, v.conv(val));
+	    			v.consValTofalse();
+	    			v.consVal[v.conv(val)]=true;
+	    			//todo opt
+	    			propagation();
+	    			propagationOnRemovedVar();
+	    		}
+    		}
+  
+    		
+    		if(isHistorique){
+    			historiqueOperations.put(var, val);
+    		}
+    	}
+    	
+    	public void assignAndPropagateTrue(String var, String val){
+//    		System.out.println(var+" "+val+"------"+isPresentInCurrentDomain(var, val));
+    		if(!isPresentInCurrentDomain(var, val) && !isHistorique)
+    		{
+    			System.out.println(val+" non presente dans "+var+". aucune operation effectue.");
+    			int z = 0;
+    			z = 1/z;
+    		}
+    		else{
+	    		Var v=cn.getVar(var);
+	    		if(v.inGraph) {
+	    			x.conditionerTrue(v, v.conv(val));
+	    			x.minMaxConsistance();
+	    			x.GICup();
+	    		}else {
+	    			//x.merge(v.graphPerDomainvalue[v.conv(val)]);
+	    			x.merge(v.graphLearned, v.conv(val));
+	    			v.consValTofalse();
+	    			v.consVal[v.conv(val)]=true;
+	    			//todo opt
+	    			propagation();
+	    		}
+    			propagationOnRemovedVar();
     		}
   
     		
@@ -934,16 +1057,25 @@ public class SALADD {
     		if(!isPresentInCurrentDomain(var, val))
     			System.out.println(val+" non presente dans "+var+". aucune operation effectue..");
     		else{
-	    		Var v=x.getVar(var);
-				x.conditioner(v, v.conv(val));
-				x.minMaxConsistanceMajopt(v.pos, true);
+	    		Var v=cn.getVar(var);
+	    		if(v.inGraph) {
+					x.conditioner(v, v.conv(val));
+					x.minMaxConsistanceMajopt(v.pos, true);
+	    		}else {
+	    			//x.merge(v.graphPerDomainvalue[v.conv(val)]);
+	    			x.merge(v.graphLearned, v.conv(val));
+	    			v.consValTofalse();
+	    			v.consVal[v.conv(val)]=true;
+	    			propagationOnRemovedVar();
+
+	    		}
 				
 				//x.GICup();
     		}
     	}
     	
     	protected void unassignAndRestoreNoMaj(String var){
-    		Var v=x.getVar(var);
+    		Var v=cn.getVar(var);
     		x.deconditioner(v);
     		x.minMaxConsistance();
     	}
@@ -954,7 +1086,7 @@ public class SALADD {
     	 * @param var
     	 */
     	public void unassignAndRestore(String var){
-    		Var v=x.getVar(var);
+    		Var v=cn.getVar(var);
     		x.deconditioner(v);
     		x.minMaxConsistanceMaj(v.pos, false);
     		
@@ -964,7 +1096,7 @@ public class SALADD {
     	}
     	
     	protected void unassignAndRestoreOpt(String var){
-    		Var v=x.getVar(var);
+    		Var v=cn.getVar(var);
     		x.deconditioner(v);
     		x.minMaxConsistanceMajopt(v.pos, false);
     	}
@@ -1010,14 +1142,14 @@ public class SALADD {
     	 * getSizeOfCurrentDomain(var) == getCurrentDomainOf(var).size()
     	 */
     	public int getSizeOfCurrentDomainOf(String var){
-    		return x.getVar(var).consistenceSize();    		
+    		return cn.getVar(var).consistenceSize();    		
     	}
     	
     	/**
     	 * getSizeOfDomain(var) == getDomainOf(var).size()
     	 */
     	public int getSizeOfDomainOf(String var){
-    		return x.getVar(var).getDomainSize();
+    		return cn.getVar(var).getDomainSize();
     	}
 
 
@@ -1029,15 +1161,15 @@ public class SALADD {
     	 * @return true si la valeur val appartient au domain courant de la variable var
     	 */
     	public boolean isPresentInCurrentDomain(String var, String val){
-    		Var v=x.getVar(var);
+    		Var v=cn.getVar(var);
     		if(v.conv(val) == -1)
     			return false;
     		return v.consVal[v.conv(val)];
     	}
 
-    	public Set<String> getCurrentDomainOf(String var){
-    		Set<String> s=new HashSet<String>();
-    		Var v=x.getVar(var);
+    	public ArrayList<String> getCurrentDomainOf(String var){
+    		ArrayList<String> s=new ArrayList<String>();
+    		Var v=cn.getVar(var);
     		for(int i=0; i<v.domain; i++){
     			if(v.consVal[i])
     				s.add(v.valeurs.get(i));
@@ -1049,7 +1181,7 @@ public class SALADD {
     	public Set<String> getDomainOf(String var){
     		Set<String> s=new HashSet<String>();
     		if(x!=null){
-	    		Var v=x.getVar(var);
+	    		Var v=cn.getVar(var);
 	    		for(int i=0; i<v.domain; i++){
 	    			s.add(v.valeurs.get(i));
 	    		}
@@ -1066,7 +1198,7 @@ public class SALADD {
     	 * @return a map value->mincost
     	 */
     	public Map<String, Integer> minCosts(String var){
-    		Var v=x.getVar(var);
+    		Var v=cn.getVar(var);
     		Map<String, Integer> m;
     		m=x.minCosts(v.pos);
     		x.minMaxConsistanceMaj(v.pos, true);
@@ -1082,7 +1214,7 @@ public class SALADD {
     	 * @return a map value->maxcost
     	 */
     	public Map<String, Integer> maxCosts(String var){
-    		Var v=x.getVar(var);
+    		Var v=cn.getVar(var);
     		Map<String, Integer> m;
     		m=x.maxCosts(v.pos);
     		x.minMaxConsistanceMaj(v.pos, true);
@@ -1094,11 +1226,11 @@ public class SALADD {
     	 * 
     	 * @return a set of non assigned variables.
     	 */
-    	public Set<String> getFreeVariables(){
-    		Set<String> s=new HashSet<String>();
-    		for(int i=0; i<x.variables.size(); i++){
-    			if(x.variables.get(i).consistenceSize()>1)
-    				s.add(x.variables.get(i).name);
+    	public ArrayList<String> getFreeVariables(){
+    		ArrayList<String> s=new ArrayList<String>();
+    		for(int i=0; i<cn.nbVariables; i++){
+    			if(cn.getVar().get(i).consistenceSize()>1)
+    				s.add(cn.getVar().get(i).name);
     		}
     		return s;
     	}
@@ -1125,7 +1257,7 @@ public class SALADD {
     	}
 	
     	protected void infos(String var){
-    		Var v=x.getVar(var);
+    		Var v=cn.getVar(var);
     		x.countingpondereOnFullDomain(v);
     	}
     	
@@ -1134,7 +1266,11 @@ public class SALADD {
     	} 
     	
     	public void postTreatments(boolean verbose) {
+    		long start= System.currentTimeMillis();
     		forgetOnlychildVariables(verbose);
+    		long end= System.currentTimeMillis();
+			System.out.println("postTreatments time : "+(end-start)/1000+","+(end-start)%1000 + "s ");
+
     	}
     	
     	public void forgetOnlychildVariables(boolean verbose) {
@@ -1147,12 +1283,10 @@ public class SALADD {
     		
     		propagation();
     		
-    		//x.entropie(x.getVar("v12").pos, x.getVar("v0").pos);
     		
     		ArrayList<Integer> listOnlyChild;
     		listOnlyChild=x.getOnlyChildParents(verbose);
-    		System.out.println("start");
-    		System.out.println(listOnlyChild);
+    		System.out.print("start forgetOnlychildVariables" + " ");
     		for(int i=0; i<listOnlyChild.size(); i++) {
     			System.out.print(x.variables.get(listOnlyChild.get(i)).name+" ");
     		}
@@ -1161,13 +1295,9 @@ public class SALADD {
     		Var v;
     		for(int i=0; i<listOnlyChild.size(); i++) {
     			v=x.variables.get(listOnlyChild.get(i));
-        		for(int j=0; j<v.domain; j++) {
-        			System.out.println(v.name+"="+j);
-            		System.out.println(x.colorUp(v.pos, j));
-            		x.learnUp(v, j, null);
-            		//v.setOnlyChildFormula(x.colorUp(v.pos, j), j);
-            		v.inGraph=false;
-        		}
+    			//x.learnUp_all(v, null, true);
+        		v.saveLearnedGraph(x.learnUp_all(v, null));
+        		v.inGraph=false;
         		
 
     		}
@@ -1182,6 +1312,25 @@ public class SALADD {
     	
     	public void updateVarNotInGraph() {
     		//for(Var v : cn.vars)
+    	}
+    	
+    	public void countRemovedVar() {
+    		int sizeN=0;
+    		int sizeA=0;
+    		
+			for(Var v:cn.getVar()) {
+				if(!v.inGraph) {
+					sizeN+=v.graphLearned.uht.size();
+					sizeA+=v.graphLearned.uht.sizeArcs();							
+				}
+			}
+			System.out.print("  taille nodes : "+sizeN+"   ");
+			System.out.print("taille arcs : "+sizeA);
+
+    	}
+    	
+    	public void setWeight(int weight) {
+    		x.setWeight(weight);
     	}
    
 }

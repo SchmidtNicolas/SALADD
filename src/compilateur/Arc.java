@@ -429,7 +429,7 @@ public class Arc {
 					if(pos==0)
 						s+= ", style=dotted";
 					if(pos==(this.pere.variable.domain-1))
-						s+= ", style=dashed";
+						//s+= ", style=dashed";
 					
 					if(!actif)
 						s+=", color=gray";

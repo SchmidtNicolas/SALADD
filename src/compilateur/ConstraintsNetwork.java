@@ -20,14 +20,12 @@ public class ConstraintsNetwork {
 
 	private ArrayList<Constraint> compiledConstraints;
 	
-	private ArrayList<Constraint> removedConstraints;
 	private ArrayList<Var> removedVars;
 
 	
 	public ConstraintsNetwork() {
 		constraints=new ArrayList<Constraint>();
 		vars=new ArrayList<Var>();
-		removedConstraints=new ArrayList<Constraint>();
 		removedVars=new ArrayList<Var>();
 		graphAdjVarVar=null;
 		graphAdjConsVar=new ArrayList<ArrayList<Integer>>();
@@ -39,6 +37,10 @@ public class ConstraintsNetwork {
 
 public ArrayList<Var> getVar() {
 	return vars;
+}
+
+public ArrayList<Var> getRemovedVar() {
+	return removedVars;
 }
 
 public ArrayList<Var> getVarPos() {
@@ -61,6 +63,10 @@ public Var getVar(int num) {
 
 public Var getVar(String name) {
 	for (Var v : vars) {
+		if(name.compareTo(v.name)==0)
+			return v;
+	}
+	for(Var v : removedVars) {
 		if(name.compareTo(v.name)==0)
 			return v;
 	}
@@ -497,7 +503,6 @@ public void removeVariablesInOnlyOneConstraint() {
 				for(int jC=0; jC<nbConstraints; jC++){
 		    		for(int jV=0; jV<constraints.get(jC).arity; jV++){
 		    			if(iC!=jC && constraints.get(iC).scopeVar.get(iV).id == constraints.get(jC).scopeVar.get(jV).id) {
-		    				System.out.println( constraints.get(iC).name+" "+constraints.get(jC).name+" "+constraints.get(iC).scopeVar.get(iV).name+" "+constraints.get(jC).scopeVar.get(jV).name);
 		    				isUnique=false;
 		    				break outerloop;
 		    			}
@@ -512,14 +517,6 @@ public void removeVariablesInOnlyOneConstraint() {
 					
 					//si la contrainte n'est pas déja save
 					boolean alreadysaved=false;
-					for(int i=0; i<removedConstraints.size(); i++) {
-						if(removedConstraints.get(i).name.compareTo(saveC.name)==0) {
-							alreadysaved=true;
-							break;
-						}
-					}
-					if(!alreadysaved)
-						removedConstraints.add(saveC);
 					
 					saveC.scopeVar.get(iV).inGraph=false;
 					saveC.scopeVar.get(iV).constraint=saveC;
@@ -664,12 +661,14 @@ public void removeImplications() {
 	for(int i=0; i<this.nbConstraints; i++) {
 		if(constraints.get(i).involved!=-1) {
 			cI=constraints.get(i);
+			System.out.println(cI.name);
 			// a->b
 			vb=cI.scopeVar.get(cI.involved);
 			va=cI.scopeVar.get(cI.involving);
 			
 			for(int j=0; j<this.nbConstraints; j++) {
 				if(i!=j) {
+					System.out.println(j+"->"+constraints.get(j).name+" "+va.name+" "+vb.name);
 					constraints.get(j).replaceVariable(vb, va, cI);
 				}
 			}
@@ -689,7 +688,6 @@ public void removeImplications() {
 			System.out.println("remove "+v.name+" (dependance fonctionelle)");
 			v.constraint=constraints.get(i);
 			
-			removedConstraints.add(constraints.get(i));
 			constraints.remove(i);
 			
 			i--;
@@ -713,17 +711,43 @@ public void removeUselessConstraints() {
 	}
 }
 
-public void updateVarNotInGraph() {
+
+public void compileNotUsedVariables() {
+	//variables in only one constraint
 	for(Var v : vars) {
 		if(!v.inGraph) {
-			
-			//dependance de 1 var
-			if(v.constraint!=null && v.constraint.arity==2) {
-				//for()
-			}
-			
+			System.out.println(v.name + " -> " + v.constraint.name);
+			v.constraint.toVDD(true, v);
+			v.saveLearnedGraph(v.constraint.vdd);
+			v.constraint.vdd.toDot(v.constraint.name, false);
+
+			/*for(int i=0; i<v.domain; i++) {
+				System.out.println(v.constraint.name+"_"+i);
+				v.constraint.toVDD(true, v, i, true);
+				v.saveLearnedGraph(v.constraint.vdd, i);
+				v.constraint.vdd.toDot(v.constraint.name+"_"+i, false);
+				
+			}*/
 		}
 	}
-}
+	
+	//variables removed (dependance fonctionelle)
+	for(Var v : removedVars) {
+		if(v.constraint!=null) {
+			System.out.println(v.name + " -> " + v.constraint.name);
+			v.constraint.toVDD(true, v);
+			v.saveLearnedGraph(v.constraint.vdd);
+			v.constraint.vdd.toDot(v.constraint.name, false);
+		}
+			/*for(int i=0; i<v.domain; i++) {
+				if(v.constraint!=null) {
+					System.out.println(v.constraint.name+"_"+i);
+					v.constraint.toVDD(true, v, i, true);
+					v.saveLearnedGraph(v.constraint.vdd, i);
+					v.constraint.vdd.toDot(v.constraint.name+"_"+i, false);
+				}
+			}*/
+		}
+	}
 
 }

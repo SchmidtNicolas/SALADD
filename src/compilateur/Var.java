@@ -29,7 +29,7 @@ public class Var {
 	public boolean [] consVal;
 	
 	public boolean inGraph=true;
-	public ArrayList<ArrayList<VarDomainRef>> formule=null;
+	public VDD graphLearned;
 	public Constraint constraint=null;
 	
 	
@@ -121,12 +121,12 @@ public class Var {
 			valeurs.add(""+i);
 	}
 	
-	public void setOnlyChildFormula(ArrayList<VarDomainRef> VDR, int val) {
-		//init
-		if(formule==null) {
-			formule=new ArrayList<ArrayList<VarDomainRef>>(Collections.nCopies(this.domain, null));	
-		}
-		
-		formule.set(val, VDR);
+	public void saveLearnedGraph_(VDD vdd, int valeur) {
+		graphLearned=vdd;
 	}
+	
+	public void saveLearnedGraph(VDD vdd) {
+		graphLearned=vdd;
+	}
+
 }

@@ -43,6 +43,8 @@ public class NodeDD{
 	protected double memoir;
 	protected Structure memoire;
 	
+	public boolean available = false;
+	
 	
 //	private static final double PRECISION=0.00000001;
 	
@@ -1085,6 +1087,24 @@ public class NodeDD{
 		aRemonter=null;
 	    adresse=null;
 	    adresseMap=null;
+	}
+	
+	public void clear() {
+		variable=null;
+		kids.clear();
+		fathers.clear();
+		
+		copie.clear();
+		indcopie.clear();
+		adresse=null;
+		adresseMap.clear();
+		
+		cpt=0;
+		counting=-1;
+		counting2=-1;
+		pondere=0;
+		inference=0;
+
 	}
 	
 }

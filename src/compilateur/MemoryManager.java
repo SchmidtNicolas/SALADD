@@ -21,7 +21,7 @@ import java.util.ArrayList;
 public class MemoryManager {
 
 	private int indiceFirstAvailable;
-	private ArrayList<VarPoidsId> objects = new ArrayList<VarPoidsId>();
+	private ArrayList<NodeDD> objects = new ArrayList<NodeDD>();
 	private static MemoryManager instance;
 	
 	private MemoryManager()
@@ -35,9 +35,9 @@ public class MemoryManager {
 		return instance;
 	}
 
-	public VarPoidsId getObject()
+	public NodeDD getObject()
 	{
-		VarPoidsId out;
+		NodeDD out;
 		try {
 			out = objects.get(indiceFirstAvailable);
 			if(!out.available)
@@ -47,23 +47,23 @@ public class MemoryManager {
 		}
 		catch(IndexOutOfBoundsException e)
 		{
-			out = new VarPoidsId(indiceFirstAvailable);
+			out=null;//			out = new NodeDD(indiceFirstAvailable);
 			objects.add(out);
 		}
 		indiceFirstAvailable++;
 		return out;
 	}
 	
-	public void destroyObject(VarPoidsId object)
+	public void destroyObject(NodeDD object)
 	{
 		if(object.available)
 			System.out.println("Intégrité rompue dans le MemoryManager: objet à détruire déjà détruit");
 		indiceFirstAvailable--;
-		VarPoidsId tmp = objects.get(indiceFirstAvailable);
+		NodeDD tmp = objects.get(indiceFirstAvailable);
 		objects.set(indiceFirstAvailable, object);
-		tmp.memoryId = object.memoryId;
-		objects.set(object.memoryId, tmp);
-		object.memoryId = indiceFirstAvailable;
+		tmp.id = object.id;
+		objects.set(object.id, tmp);
+		object.id = indiceFirstAvailable;
 		object.clear();
 		object.available = true;
 //		System.out.println(indiceFirstAvailable);

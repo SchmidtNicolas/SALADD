@@ -69,7 +69,7 @@ public class NodeDDlast extends NodeDD {
 	    		if(isst)
 	    			s+="1, shape=box";
 	    		else
-	    			s+="0, shape=box";
+	    			s+="T, shape=box";
 	    	}
 	    	else
 	    		s+=this.variable.name;//+"_"+this.id;//+"_"+this.kidsdiffbottom();

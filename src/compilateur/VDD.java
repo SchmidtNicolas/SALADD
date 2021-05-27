@@ -404,254 +404,6 @@ uht.detect();
     
     
 
-    
-    //recursif (voir l'autre fonction du meme nom)
-    public void valeurCheminRecursif(Arc arc, VarPoidsId data, boolean softConstraint, boolean conflictsConstraint, Structure defaultCost){    	  	
-    	boolean end=true;
-    	
-    	boolean dejavu=false;
-    	NodeDD temp=arc.fils;
-
-    	if(!arc.fils.isLeaf()){
-    		//for(int i=arc.fils.variable.pos+1; i<var.get(0).length; i++){
-	    	for(int i=arc.fils.variable.pos; i<data.triplet.get(0).var.length; i++){
-	    		if(data.triplet.get(0).var[i]!=-1){
-	    			end=false;
-	    			break;
-	    		}
-	    	}
-    	}
-    	
-    	if(data.triplet.size()==0){
-    		System.out.println("inutile");
-    	}
-    	
-    	//on detecte si cette séquences est déjà passé par là
-    	if(!end){
-    		if(temp.cpt!=1){	
-    			
-		    	for(int i=0; i<temp.copie.size(); i++){
-		    		if (temp.indcopie.get(i)==data.triplet.get(0).id){		//si le 0 y est, tous les autres doivent suivre  &&  sauf si il a ete supprime
-		    			if(temp.copie.get(i).cpt!=-1){
-		    				arc.changerFils(temp.copie.get(i));
-		    				arc.operationValuerARemonter(temp.copie.get(i));
-		    			}else{
-		    				if(temp.copie.get(i).adresse!=null){
-		    					arc.changerFils(temp.copie.get(i).adresse); 
-		    					arc.operationValuerARemonter(temp.copie.get(i));
-		    				}else
-		    					//on pointe vers un truc a bottom en fait
-		    					arc.bottom=1;
-		    			}
-		    			if(temp.fathers.size()==0){
-		        			temp.cpt=-1;
-		    			}
-		    			dejavu=true;
-		    			//arc.operationValuerARemonter();
-		    			break;
-		    		}
-		    	}
-	    	}else{
-	    		dejavu=true;
-	    	}
-    	}
-    	
-    	if(!dejavu){
-       		//on selectionne pour la suite
-	        		
-	        if(!end){            //si pas fini
-	        	boolean condition;
-	            if(arc.pere!=null)
-	            condition=data.triplet.get(0).var[arc.pere.variable.pos]==-1;
-	            else
-	            condition=true;
-	                       
-	            if(arc.fils.fathers.size()>1 &&
-	            		!(arc.fils.isMonoPere() &&  condition)){    //dans ces cas on cree un nouveau sommet	
-
-	        		// Création de noeud
-	        		NodeDD nouv=new NodeDD(arc.fils, arc);
-	        		nouv.cpt=1;
-	        		temp.copie.add(nouv);
-	        		temp.indcopie.add(data.triplet.get(0).id);
-	        	}else{					//on en cree pas
-					arc.fils.cpt=1;
-	        		uht.removeFromTable(arc.fils);							//on l'enleve le temps des changements
-	        		temp.copie.add(temp);
-	        		temp.indcopie.add(data.triplet.get(0).id);
-	        	}
-    	
-        		if(data.triplet.get(0).var[temp.variable.pos]!=-1){						//cas ou la variable est instenciee
-        	    	VarPoidsId nextData = memorymanager.getObject();
-
-            		for(int i=0; i<temp.kids.size(); i++){
-            			if(arc.fils.kids.get(i).bottom==0){		//on verifie que le fils n'est pas une feuille
-            				nextData.clear();
-            				for(int j=0; j<data.triplet.size(); j++){
-            					if(data.triplet.get(j).var[temp.variable.pos]==i){		//on garde ceux qu'on va mettre ensemble
-            						nextData.triplet.add(data.triplet.get(j));
-//           						var.remove(j);
-//            						id.remove(j);
-//            						j--;
-            					}
-            					//if(data.triplet.get(j).var[temp.variable.pos]<=-2 && data.triplet.get(j).var[temp.variable.pos]!=(-i-2)){				//tag2020 : -1 = not concerned; -2 = !0 ; -3 = !1 ; -4 = !2 ; ...
-            					//	nextData.triplet.add(data.triplet.get(j));
-            					//}
-            				}
-            				//ici on developpe ce groupe la
-            				if (!nextData.triplet.isEmpty()){
-            					valeurCheminRecursif(arc.fils.kids.get(i), nextData, softConstraint, conflictsConstraint, defaultCost);
-            				}else{
-            			    	if( !softConstraint && !conflictsConstraint){
-            			    		arc.fils.kids.get(i).bottom++;
-            			    	}else{
-            			    		if(softConstraint && !defaultCost.isNeutre() && !flagPlus){// ||
-            			    			arc.fils.kids.get(i).operationS(defaultCost);
-            			    		}
-            					}
-            				}
-
-            			}
-            		}
-                	
-                	memorymanager.destroyObject(nextData);
-    			}else{
-    				VarPoidsId nextData = memorymanager.getObject();
-//    				ArrayList<NodeDD> aajouter=new
-    				for(int i=0; i<arc.fils.kids.size(); i++){
-        				if(arc.fils.kids.get(i).bottom==0){		//on verifie que le fils n'est pas une feuille
-        					//copie de var->varnext
-        					if(i == arc.fils.kids.size()-1)
-            					valeurCheminRecursif(arc.fils.kids.get(i), data, softConstraint, conflictsConstraint, defaultCost);
-        					else
-        					{
-        						nextData.clear();
-	        					nextData.triplet.addAll(data.triplet);
-	        					valeurCheminRecursif(arc.fils.kids.get(i), nextData, softConstraint, conflictsConstraint, defaultCost);
-        					}
-        				}
-    				}
-    		    	
-    		    	memorymanager.destroyObject(nextData);
-    			}
-    		}else{				//si fini
-    	    	
-        		if(softConstraint){		 			//contrainte valuee
-        			for(int i=0; i<data.triplet.size(); i++){
- //       				if(poid.get(i).isabsorbant())
- //       					System.out.println("botom");
-        				
-        				arc.operationS(data.triplet.get(i).poid);
-        				//if(i>=1)
-        				//	System.out.println("@VDD : coucou");
-        			}
-
-        		//	for(int j=0; j<var.size(); j++)
-        		//			arc.fils.kids.get((int)var.get(j)[arc.fils.variable.pos]).s.operationSLDD(var.get(j)[0]);		//var[0]==poid
-        		}
-        		if(conflictsConstraint){
-        			arc.bottom++;
-        		}
-        		
-         	}
-        	
-        	if(!arc.fils.isLeaf())
-        		uht.ajoutNormaliseReduitPropage(arc.fils);
-
-        }
-    }
-    
-    //permet de rentrer un poid specifique a un chemin
-    // [contrainte0..]
-    // [contrainte1..]
-    public void valeurChemin(int[][] var, Structure[] poids, Structure defaultCost, boolean softConstraint, boolean conflictsConstraint){
-    //cout par defaut//
-    	
-    	int firstC=-1;
-    	for(int i=0; i<var[0].length; i++){
-    		if(var[0][i]!=-1){
-    			firstC=i;
-    			break;
-    		}
-    	}
-    	
-		VarPoidsId data = memorymanager.getObject();
-    	
-    	//transpho des donnes en arraylist
-    	for(int i=0; i<var.length; i++){
-    		data.triplet.add(new VarPoidIdElement(i, var[i], poids[i]));
-    	}
- 
-		
-    	if(data.triplet.size()>0){
-    		//sauvegarde des departs (on ne peut pas lire une hashtable qu'on modifie)
-    		//NodeDD[] tableNode=new NodeDD[uht.size(firstC)];
-    		ArrayList<NodeDD> tableNode;
-    		tableNode=uht.get(firstC);
-   
-
-    		
-    		//on supprime les fathers pour pouvoir modifier les fils tranquil
-    		//NodeDD[] fathers;
-    		ArrayList<NodeDD> fathers;
-    		//if(firstC!=1){
-    		//	fathers=new NodeDD[uht.size(firstC-1)];
-    		//}else{
-    		//	fathers=new NodeDD[0];
-    		//}
-    		if(firstC!=0){
-    			fathers=uht.get(firstC-1);
-    		}else{
-    			fathers=new ArrayList<NodeDD>();
-    		}
- 
-    		for(int i=0; i<fathers.size(); i++){
-    			uht.removeFromTable(fathers.get(i));
-    		}
-
-    		//opp
-    			//on doit creer une liste de depart car les noeuds sont suceptibles de change de place dans le parcours de la hashtable
-    		ArrayList<Arc> arcsDepart=new ArrayList<Arc>();
-    		for(int i=0; i<tableNode.size(); i++){
-    			for(int j=0; j<tableNode.get(i).fathers.size(); j++){
-    				arcsDepart.add(tableNode.get(i).fathers.get(j));
-    			}
-    		}
-    		
-    		for(int i=0; i<arcsDepart.size(); i++){
-    			if(arcsDepart.get(i).fils!=null)  //sans ca ca bug des fois. (small.xml h=-1 hcon=-1)
-    				valeurCheminRecursif(arcsDepart.get(i), data, softConstraint, conflictsConstraint, defaultCost);		//on prend un arc au pif de tous les neuds de v1 de la contrainte
-    		}
-    		
-    		//on remet les peres
-    		for(int i=0; i<fathers.size(); i++){
-    			uht.ajoutNormaliseReduitPropage(fathers.get(i));
-    		}
-    		
-    		//for(int i=0; i<fathers.size(); i++){
-    		//	uht.ajoutNormaliseReduit(fathers.get(i));
-    		//}
-    		//if(fathers.size()>0)
-    		//uht.normaliser(fathers.get(0).variable.pos);
-    	}
-    	
-    	
-    	//on retablis les noeuds finaux non parcourus
-/*    	if(flagDefaultCost){
-    		for(int i=0; i<liste.size(); i++){        		
-    			if(liste.get(i).cpt!=1){
-    				uht.ajoutNormaliseReduitPropage(liste.get(i));
-    			}
-    		}
-    	}*/
-    	
-    	uht.supprNeudNegatifs();
-    	uht.copieToNull();			//+ a remonter to null
-    	uht.cptTo(0);
-
-		memorymanager.destroyObject(data);
-		
-    }
 
 	
 	//compte le nombre de passage dans chaques neud
@@ -1144,8 +896,10 @@ uht.detect();
 
 	
 	public void minMaxConsistance(){
-		for(int i=0; i<variables.size(); i++)
-			variables.get(i).consValTofalse();
+		for(int i=0; i<variables.size(); i++) {
+			if(variables.get(i).inGraph)
+				variables.get(i).consValTofalse();
+		}
 		//uht.maxminNull();
 		
 		//bug premier dernier a resoudre
@@ -1661,8 +1415,8 @@ uht.detect();
     	if(nameGraph.endsWith(".dot"))
     		nameGraph=nameGraph.substring(0, nameGraph.length()-4);
     	
-		String name_file= "./" + nameGraph + ".dot";
-		String name_pdf= "./" + nameGraph + ".pdf";
+		String name_file= "./a/" +nameGraph+ ".dot";
+		String name_pdf= "./a/" +nameGraph+ ".pdf";
 		try{
 			fW = new FileWriter(name_file);
 		
@@ -2133,19 +1887,8 @@ uht.detect();
 				}
 			}
 			if(onlyChild) {
-				if(verbose)
-					
-				if(variables.get(i).name.compareTo("v40")!=0 && 
-						variables.get(i).name.compareTo("v11")!=0 &&
-						variables.get(i).name.compareTo("v26")!=0 &&
-						variables.get(i).name.compareTo("v100")!=0 &&
-						variables.get(i).name.compareTo("v92")!=0 &&
-						variables.get(i).name.compareTo("v96")!=0 &&
-						variables.get(i).name.compareTo("v99")!=0
-						) {
-					System.out.println(variables.get(i).name);
-					listOnlyChild.add(i);
-				}
+				listOnlyChild.add(i);
+				
 			}
 			
 		}
@@ -2159,8 +1902,7 @@ uht.detect();
 		NodeDD child=null;
 		NodeDD pere=null;
 		
-		list=uht.get(etage);
-			
+		list=(ArrayList<NodeDD>) uht.get(etage).clone();
 		for(NodeDD n:list) {
 			
 			//looking for child
@@ -2172,7 +1914,7 @@ uht.detect();
 			}
 			
 			//for every incoming edge
-			while(n.fathers.size()>0) {
+			while(n.fathers.size()>0 && etage!=0) {
 
 				pere=n.fathers.get(0).pere;
 				uht.removeFromTable(pere);
@@ -2184,6 +1926,8 @@ uht.detect();
 			//delete n
 			uht.removeDefinitely(n);
 		}
+		
+
 			
 	}
 	
@@ -2310,98 +2054,8 @@ uht.detect();
 	
 	
 
-    public ArrayList<VarDomainRef> colorUp(int variable, int valeur){
-    	ArrayList<VarDomainRef> listVdr = new ArrayList<VarDomainRef>();
-    	ArrayList<NodeDD> nodes;
-
-		conditioner(variable, valeur);
-		minMaxConsistanceMaj(variable, true);
-    	uht.countingToMoinsUn();
-    	    	
-    	
-    	
-    	for(int i=0; i<uht.get(variable).size(); i++){
-    		if(uht.get(variable).get(i).kidsdiffbottomActif()>0)
-    			uht.get(variable).get(i).counting=0;
-    		else
-    			uht.get(variable).get(i).counting=-1;
-    	}
-    	
-    	for(int i=variable-1; i>=0; i--){
-    		nodes=uht.get(i);
-        	for(int j=0; j<nodes.size(); j++){
-        		colorUp(nodes.get(j), listVdr);
-        	}
-    	}
-    	deconditioner(variable);
-    	
-    	return listVdr;
-    }
-    
-	public void colorUp(NodeDD n, ArrayList<VarDomainRef> listVdr){
-		Arc a;
-		long origine=-2; //-2 not found, -1 inactif, 0..x actif
-		boolean allTheSame=true;
-		
-		for(int i=0; i<n.kids.size(); i++) {
-			a=n.kids.get(i);
-			if(a.bottom==0) {
-				
-				//find first diff bottom==0
-				if(origine==-2) {
-					if(a.actif)
-						origine=a.fils.counting;
-					else
-						origine=-1;
-				}
-				else {
-					if((a.actif && a.fils.counting!=origine) || (!a.actif && origine!=-1)) {
-						allTheSame=false;
-						break;
-					}
-				}
-			}
-				
-		}
-		
-		if(allTheSame)
-			n.counting=origine;
-		else {
-			long num;
-			int idx;
-			VarDomainRef vdr=new VarDomainRef(n.variable);
-			//a partir de l�, on ecrit !
-			for(int i=0; i<n.kids.size(); i++) {
-				a=n.kids.get(i);
-				if(a.bottom==0 && a.actif) {					
-					num=a.fils.counting;
-					if(num!=-1) {
-						idx=vdr.ref.indexOf(num);
-						if(idx==-1) {
-							vdr.ref.add(num);
-							vdr.domain.add(new ArrayList<Integer>());
-							idx=vdr.ref.size()-1;
-						}
-						vdr.domain.get(idx).add(i);
-					}
-				}
-					
-			}
-			
-			idx=listVdr.indexOf(vdr);
-			if(idx==-1) {
-				listVdr.add(vdr);
-				n.counting=listVdr.size();
-			}else {
-				n.counting=idx+1;
-			}
-			
-		}
-		
-		
-	}
 	
-    public VDD learnUp(Var variable, int valeur, VDD newVDD){
+   /* public VDD learnUp(Var variable, int valeur, VDD newVDD){
     	if(newVDD==null) {
         	UniqueHashTable newUht = new UniqueHashTable(variables.size());
     		newVDD = new VDD(null, newUht, this.variables);
@@ -2409,6 +2063,8 @@ uht.detect();
     	int variablePos=variable.pos;
     	NodeDD first=null;
     	NodeDD isNewFirst=null;
+    	
+    	boolean atLeastOneModel=false;
     	
     	ArrayList<NodeDD> nodes;
     	
@@ -2418,28 +2074,20 @@ uht.detect();
 		conditioner(variablePos, valeur);
 		minMaxConsistanceMaj(variablePos, true);
     	uht.countingToMoinsUn();
+    	
     	    	
     	
     	
     	for(int i=0; i<uht.get(variablePos).size(); i++){
-    		if(uht.get(variablePos).get(i).kidsdiffbottomActif()>0)
+    		if(uht.get(variablePos).get(i).kidsdiffbottomActif()>0) {
     			uht.get(variablePos).get(i).counting=0;
+    			atLeastOneModel=true;
+    		}
     		else
     			uht.get(variablePos).get(i).counting=-1;
     	}
     	
-    	//newVar new node
-    	NodeDD newNode = new NodeDD(variable);
-		for(int j=0; j<variable.domain; j++){		//domaine : de 0 a x-1
-			Structure s=new Sp();
-			new Arc(newNode, newVDD.last, j, s);		//int donc SLDD+
-			if(j!=valeur)
-				newNode.kids.get(j).bottom++;
-		}
-		newVDD.uht.ajoutSansNormaliser(newNode);
-		allNewNodes.add(newNode);
-		first=newNode;
-		allNewVar.add(variable);
+    	allNewNodes.add(newVDD.last);
     	
     	
     	for(int i=variablePos-1; i>=0; i--){
@@ -2451,18 +2099,236 @@ uht.detect();
         	}
     	}
     	deconditioner(variable);
+    	minMaxConsistance();
     	
     	//make newVDD real
     	if(first==null) {
     		first=newVDD.last;
     	}
+
+    	
+    	//reorganise allNewVar by order
+    	for(int i=0; i<allNewVar.size()-1; i++) {
+    		if(allNewVar.get(i+1).pos<allNewVar.get(i).pos) {
+    			allNewVar.add(i+1, allNewVar.remove(i));		//switch places
+    			i-=2;
+    			if(i==-2)
+    				i=-1;
+    		}
+    	}
+    	
     	newVDD.first = new Arc(first, true);
     	newVDD.variables=allNewVar;
     	newVDD.uht.ajoutSansNormaliser(newVDD.last);
     	
+    	if(!atLeastOneModel) {
+    		newVDD.first.bottom++;
+    	}
+    	
     	newVDD.toDot(variable.name+"_"+valeur, false);
     	return newVDD;
-    }
+    }*/
+    public VDD learnUp_all(Var variable, VDD newVDD){
+    	if(newVDD==null) {
+        	UniqueHashTable newUht = new UniqueHashTable(variables.size());
+    		newVDD = new VDD(null, newUht, this.variables);
+    	}
+    	int variablePos=variable.pos;
+    	NodeDD first=null;
+    	NodeDD isNewFirst=null;
+    	
+    	boolean atLeastOneModel=false;
+    	boolean atLeastOneModelForAll=false;
+
+    	ArrayList<NodeDD> nodes;
+    	
+    	ArrayList<NodeDD> allNewNodes=new ArrayList<NodeDD>();
+    	ArrayList<Var> allNewVar=new ArrayList<Var>();
+
+    	allNewNodes.add(newVDD.last);
+    	
+    	//ajout du 1er node
+    	NodeDD n1=new NodeDD(variable);
+    	newVDD.first = new Arc(n1, true);
+    	
+    	for(int val=0; val<variable.domain; val++) {
+
+    		atLeastOneModel=false;
+    		conditioner(variablePos, val);
+    		minMaxConsistanceMaj(variablePos, true);
+    		uht.countingToMoinsUn();
+    	
+    	    	
+    	
+    	
+	    	for(int i=0; i<uht.get(variablePos).size(); i++){
+	    		if(uht.get(variablePos).get(i).kidsdiffbottomActif()>0) {
+	    			uht.get(variablePos).get(i).counting=0;
+	    			atLeastOneModel=true;
+	    			atLeastOneModelForAll=true;
+	    		}
+	    		else
+	    			uht.get(variablePos).get(i).counting=-1;
+	    	}    	
+	    	
+	    	
+	    	for(int i=variablePos-1; i>=0; i--){
+	    		nodes=uht.get(i);
+	        	for(int j=0; j<nodes.size(); j++){
+	        		isNewFirst=learnUp(nodes.get(j), newVDD, allNewNodes, allNewVar);
+	        		if(isNewFirst!=null)
+	        			first=isNewFirst;
+	        	}
+	    	}
+	    	deconditioner(variable);
+	    	minMaxConsistance();
+	    	
+	    	
+	    	//make newVDD real
+	    	if(first==null) {
+	    		first=newVDD.last;
+	    	}
+			new Arc(n1, first, val, new Sp());
+			if(!atLeastOneModel) {
+				n1.kids.get(val).bottom++;
+			}
+			
+    	}
+    	
+    	//reorganise allNewVar by order
+    	for(int i=0; i<allNewVar.size()-1; i++) {
+    		if(allNewVar.get(i+1).pos<allNewVar.get(i).pos) {
+    			allNewVar.add(i+1, allNewVar.remove(i));		//switch places
+    			i-=2;
+    			if(i==-2)
+    				i=-1;
+    		}
+    	}
+    	allNewVar.add(0, variable);
+    	
+    	newVDD.variables=allNewVar;
+    	newVDD.uht.ajoutSansNormaliser(newVDD.last);
+    	newVDD.uht.ajoutSansNormaliser(n1);
+
+    	if(!atLeastOneModelForAll) {
+    		newVDD.first.bottom++;
+    	}
+    	
+    	newVDD.toDot(variable.name+"_all", false);
+    	return newVDD;
+    }  
+    
+    public VDD learnUp_all(Var variable, VDD newVDD, boolean onLastPos){
+    	if(newVDD==null) {
+        	UniqueHashTable newUht = new UniqueHashTable(variables.size());
+    		newVDD = new VDD(null, newUht, this.variables);
+    	}
+    	int variablePos=variable.pos;
+    	NodeDD first=null;
+    	NodeDD isNewFirst=null;
+    	
+    	boolean atLeastOneModel=false;
+    	
+    	ArrayList<NodeDD> nodes;
+    	
+    	ArrayList<NodeDD> allNewNodes=new ArrayList<NodeDD>();
+    	ArrayList<Var> allNewVar=new ArrayList<Var>();
+
+    	allNewNodes.add(newVDD.last);
+    	
+    	//ajout du 1er/drrnier node
+    	NodeDD n1=null;
+    	ArrayList<NodeDD> nx=null;
+
+    	if(!onLastPos) {
+    		n1=new NodeDD(variable);
+    		newVDD.first = new Arc(n1, true);
+    	}
+    	
+    	NodeDD firstfirst=null;
+    	for(int val=0; val<variable.domain; val++) {
+    		if(onLastPos) {
+    	    	allNewNodes.set(0, nx.get(val));
+    		}
+    		
+    		conditioner(variablePos, val);
+    		minMaxConsistanceMaj(variablePos, true);
+    		uht.countingToMoinsUn();
+    	
+    	    	
+    	
+    	
+	    	for(int i=0; i<uht.get(variablePos).size(); i++){
+	    		if(uht.get(variablePos).get(i).kidsdiffbottomActif()>0) {
+	    			uht.get(variablePos).get(i).counting=0;
+	    			atLeastOneModel=true;
+	    		}
+	    		else
+	    			uht.get(variablePos).get(i).counting=-1;
+	    	}    	
+	    	
+	    	
+	    	for(int i=variablePos-1; i>=0; i--){
+	    		nodes=uht.get(i);
+	        	for(int j=0; j<nodes.size(); j++){
+	        		isNewFirst=learnUp(nodes.get(j), newVDD, allNewNodes, allNewVar);
+	        		if(isNewFirst!=null)
+	        			first=isNewFirst;
+	        	}
+	    	}
+	    	deconditioner(variable);
+	    	minMaxConsistance();
+	    	
+	    	//make newVDD real
+	    	if(first==null) {
+	    		first=newVDD.last;
+	    	}
+	    	
+	    	if(!onLastPos) {
+	    		new Arc(n1, first, val, new Sp());
+	    	}else {
+	    		if(firstfirst==null)
+	    			firstfirst=first;
+	    		else
+	    			firstfirst.fusion(first);
+	    	}
+
+    	}
+		if(onLastPos) {
+	    	allNewNodes.set(0, newVDD.last);
+		}
+    	
+    	//reorganise allNewVar by order
+    	for(int i=0; i<allNewVar.size()-1; i++) {
+    		if(allNewVar.get(i+1).pos<allNewVar.get(i).pos) {
+    			allNewVar.add(i+1, allNewVar.remove(i));		//switch places
+    			i-=2;
+    			if(i==-2)
+    				i=-1;
+    		}
+    	}
+    	if(!onLastPos) {
+    		allNewVar.add(0, variable);
+    	}else {
+    		allNewVar.add(variable);
+    	}
+    	
+    	newVDD.variables=allNewVar;
+    	newVDD.uht.ajoutSansNormaliser(newVDD.last);
+    	if(!onLastPos) {
+    		newVDD.uht.ajoutSansNormaliser(n1);
+    	}else {
+    		for(int i=0; i<variable.domain; i++)
+    			newVDD.uht.ajoutSansNormaliser(nx.get(i));
+    	}
+
+    	if(!atLeastOneModel) {
+    		newVDD.first.bottom++;
+    	}
+    	
+    	newVDD.toDot(variable.name+"_all_upsideDown", false);
+    	return newVDD;
+    }  
     
 	public NodeDD learnUp(NodeDD n, VDD newVDD, ArrayList<NodeDD> allNewNodes, ArrayList<Var> allNewVar){
 		Arc a;
@@ -2490,9 +2356,9 @@ uht.detect();
 				
 		}
 		
-		if(allTheSame)
+		if(allTheSame) {
 			n.counting=origine;
-		else {
+		}else {
 			int num;
 			//add var
 			if(allNewVar.indexOf(n.variable)==-1)
@@ -2523,11 +2389,13 @@ uht.detect();
 			
 			//add newNode to uht
 			int cptNode=newVDD.uht.get(n.variable.pos).size();
-			newVDD.uht.ajoutSansNormaliser(newNode);
+			newNode=newVDD.uht.ajoutSansNormaliser(newNode);
 			if(newVDD.uht.get(n.variable.pos).size()>cptNode) {
 				allNewNodes.add(newNode);
+				n.counting=allNewNodes.size()-1;
+			}else {
+				n.counting=allNewNodes.indexOf(newNode);
 			}
-			n.counting=allNewNodes.size()-1;
 
 			
 			
@@ -2537,173 +2405,6 @@ uht.detect();
 		return null;
 		
 		
-	}
-	
-	public void mergeFatherCommun_localmap_lastNode() {
-		
-		ArrayList<NodeDD> nodes;
-		ArrayList<Arc> fathers;
-
-		Arc arcX;
-		NodeDD pereX;
-		NodeDD frerotCurr;
-		
-		nodes = uht.getLast();
-		for(NodeDD node:nodes) {
-			//remove and save
-			
-			fathers=(ArrayList<Arc>) node.fathers.clone();
-			for(Arc father:fathers) {
-				int pos=father.pos;
-				pereX=father.pere.adresse;
-				arcX=pereX.kids.get(pos);
-				//pas encore de duplication
-				if(arcX.bottom>0) {
-					father.bottom++;
-					father.changerFils(uht.getLast().get(0));
-				}
-			}
-			
-			
-		}
-		
-	}
-	
-	public ArrayList<NodeDD> mergeFatherCommun_localmap(int posInOrder) {
-		Map<NodeDD, NodeDD> adresseMap = null;
-		ArrayList<NodeDD> savelist=new ArrayList<NodeDD>();
-		
-		ArrayList<NodeDD> nodes;
-		ArrayList<Arc> fathers;
-
-		Arc arcX;
-		NodeDD pereX;
-		NodeDD frerotCurr;
-		
-		if(posInOrder<uht.nbVariables) {
-			//node:pas en commun && father : variable en commun
-			nodes=(ArrayList<NodeDD>) uht.get(posInOrder).clone();
-		}else {
-			mergeFatherCommun_localmap_lastNode();
-			nodes=new ArrayList<NodeDD>();
-		}
-		for(NodeDD node:nodes) {
-			//remove and save
-			
-			fathers=(ArrayList<Arc>) node.fathers.clone();
-			for(Arc father:fathers) {
-				int pos=father.pos;
-				pereX=father.pere.adresse;
-				arcX=pereX.kids.get(pos);
-				//pas encore de duplication
-				if(arcX.bottom>0) {
-					father.bottom++;
-					father.changerFils(uht.getLast().get(0));
-				}else {
-					//pas encore de duplication
-					if(node.adresse==null) {
-						node.adresse=arcX.fils;
-					}else{		//duplication?
-						if(arcX.fils!=node.adresse){
-							
-							////////////////////
-							//init if needeed
-							if(adresseMap==null)
-								adresseMap=new HashMap<NodeDD, NodeDD>();
-							
-							frerotCurr=adresseMap.get(arcX.fils);
-							if(frerotCurr==null) {
-								
-								frerotCurr=new NodeDD(node, father);
-								frerotCurr.cpt=1;
-								adresseMap.put(arcX.fils, frerotCurr);
-								
-								savelist.add(frerotCurr);
-
-							}else {
-								father.changerFils(frerotCurr);
-							}
-							frerotCurr.adresse=arcX.fils;
-								
-			    			
-						}
-						
-					}
-				}
-			}
-			
-			if(node.fathers.size()==0){
-    			//node.cpt=-1;
-    			uht.removeDefinitely(node);
-			}else {
-				uht.removeFromTable(node);
-				savelist.add(node);
-			}
-			
-			if(adresseMap!=null)
-				adresseMap.clear();
-		}
-		
-		return savelist;
-	}
-	
-	public ArrayList<NodeDD> mergeFatherNotCommun_localmap(int posInOrder) {
-		Map<NodeDD, NodeDD> adresseMap = null;
-		ArrayList<NodeDD> savelist=new ArrayList<NodeDD>();
-
-		ArrayList<NodeDD> nodes;
-		ArrayList<Arc> fathers;
-
-		Arc arcX;
-		NodeDD pereX;
-		NodeDD frerotCurr;
-		
-		//node:pas en commun && father : variable en commun
-		nodes=(ArrayList<NodeDD>) uht.get(posInOrder).clone();
-		for(NodeDD node:nodes) {
-			fathers=(ArrayList<Arc>) node.fathers.clone();
-			for(Arc father:fathers) {
-				int pos=father.pos;
-				pereX=father.pere.adresse;
-				//pas encore de duplication
-
-				if(node.adresse==null) {
-					node.adresse=pereX;
-				}else{		//duplication?
-					if(pereX!=node.adresse){
-						
-						////////////////////
-						//init if needeed
-						if(adresseMap==null)
-							adresseMap=new HashMap<NodeDD, NodeDD>();
-						
-						frerotCurr=adresseMap.get(pereX);
-						if(frerotCurr==null) {
-							frerotCurr=new NodeDD(node, father);
-							frerotCurr.cpt=1;
-							adresseMap.put(pereX, frerotCurr);
-							savelist.add(frerotCurr);
-						}else {
-							father.changerFils(frerotCurr);
-						}
-						frerotCurr.adresse=pereX;	
-					}
-					
-				}
-			}
-			if(node.fathers.size()==0){
-    			//node.cpt=-1;
-    			uht.removeDefinitely(node);
-			}else {
-				uht.removeFromTable(node);
-				savelist.add(node);
-			}
-			
-			if(adresseMap!=null)
-				adresseMap.clear();
-		}
-	
-		return savelist;
 	}
 	
 	public ArrayList<NodeDD> mergeAllCase(int posInOrder) {
@@ -2736,6 +2437,7 @@ uht.detect();
 						if(arcX.bottom>0) {
 							father.bottom++;
 							father.changerFils(uht.getLast().get(0));
+							//father.activer(false);
 						}
 					}
 				}
@@ -2761,6 +2463,7 @@ uht.detect();
 					if(arcX.bottom>0) {
 						father.bottom++;
 						father.changerFils(uht.getLast().get(0));
+						//father.activer(false);
 					}else {
 						//pas encore de duplication
 						if(node.adresse==null) {
@@ -2840,9 +2543,15 @@ uht.detect();
 
 	//todo add valued data
 	public void merge(VDD X) {
+		uht.copieToNull();
+		
 		ArrayList<NodeDD> nodes;
 		ArrayList<ArrayList<NodeDD>> savelist = new ArrayList<ArrayList<NodeDD>>();
 
+		if(X.variables.size()==0) {
+			return;
+		}
+		
 		NodeDD startNode=X.first.fils;
 		Var startVar=X.variables.get(0);
 		Var endVar=X.variables.get(X.variables.size()-1);
@@ -2857,15 +2566,19 @@ uht.detect();
 		}
 		savelist.add(nodes);
 		
-		/*for(int i=startVar.pos; i<=endVar.pos; i++) {
-			if(X.variables.indexOf(this.variables.get(i))!=-1)
-				savelist.add(mergeFatherCommun_localmap(i+1));
-			else
-				savelist.add(mergeFatherNotCommun_localmap(i+1));
-		}*/
-		for(int i=startVar.pos; i<=endVar.pos; i++) {
-				savelist.add(mergeAllCase(i+1));
+
+		for(int i=startVar.pos+1; i<=endVar.pos; i++) {
+				savelist.add(mergeAllCase(i));
 		}
+		
+		//get first next node existing
+		int next=endVar.pos+1;
+		while(next<uht.nbVariables && uht.get(next).size()==0) {
+			next++;
+		}
+		//finish
+		savelist.add(mergeAllCase(next));
+		
 		
 		for(int i=savelist.size()-1; i>=0; i--) {
 			for(int j=0; j<savelist.get(i).size(); j++) {
@@ -2877,101 +2590,249 @@ uht.detect();
 
 		uht.supprNeudNegatifs();
 		
+		if(startVar.pos>0)
+			uht.normaliser();
+		
 	}
-	    	    		
-	
-	
-	public void merge_r(NodeDD node) {
-		NodeDD nodeX=node.adresse;
-		Map<NodeDD, NodeDD> adresseMap = null;
 
-		int pos;
-		NodeDD fils;
-		NodeDD filsX;
-		NodeDD frerotCurr;
+	public void merge(VDD X, int valeur) {
+		uht.copieToNull();
 		
-		//node:pas en commun && father : variable en commun		
-		for(Arc kid:node.kids) {
-			if(kid.bottom==0) {
-				pos=kid.pos;
-				fils=kid.fils;
+		ArrayList<NodeDD> nodes;
+		ArrayList<ArrayList<NodeDD>> savelist = new ArrayList<ArrayList<NodeDD>>();
+
+		if(X.variables.size()==0) {
+			return;
+		}
+		
+		NodeDD startNode=X.first.fils.kids.get(valeur).fils;
+		if(!startNode.isLeaf()) {								//if leaf, it's over
+			Var startVar=startNode.variable;
+			Var endVar=X.variables.get(X.variables.size()-1);
+			
+			//var 1
+			
+			nodes=uht.get(startVar.pos);
+			
+			for(NodeDD node:nodes) {
+				node.adresse=startNode;
+				uht.removeFromTable(node);
+			}
+			savelist.add(nodes);
+			
+	
+			for(int i=startVar.pos+1; i<=endVar.pos; i++) {
+					savelist.add(mergeAllCase(i));
+			}
+			
+			//get first next node existing
+			int next=endVar.pos+1;
+			while(next<uht.nbVariables && uht.get(next).size()==0) {
+				next++;
+			}
+			//finish
+			savelist.add(mergeAllCase(next));
+			
+			
+			for(int i=savelist.size()-1; i>=0; i--) {
+				for(int j=0; j<savelist.get(i).size(); j++) {
+					uht.ajoutNormaliseReduit(savelist.get(i).get(j));
+				}
+			}
+			
+			uht.copieToNull();
+	
+			uht.supprNeudNegatifs();
+			
+			if(startVar.pos>0)
+				uht.normaliser();
+		}else {
+			if(X.first.fils.kids.get(valeur).bottom>0) {
+				System.out.println("VDD : no solution");
+				this.first.changerFils(last);
+				first.bottom++;
+			}
+		}
+		
+	}
+	
+	public void mergeWithMissingVars(VDD X) {
+		Var comonVar = X.first.fils.variable;	//variable sur laquelle on merge
+		Var temp;
+		
+		ArrayList<Var> varToAdd = new ArrayList<Var>();
+		ArrayList<Var> allVar = new ArrayList<Var>();
+		//detecter variables a ajouter
+		for(int i=1; i<X.variables.size(); i++) {
+			if(!this.variables.contains(X.variables.get(i)))
+				varToAdd.add(X.variables.get(i));
+		}
+		
+		///// ajouter la structure "blanche" /////
+		//allVarInOrder
+		allVar.addAll(this.variables);
+		allVar.addAll(varToAdd);
+		allVar.remove(comonVar);
+		//sort
+		for(int i=0; i<allVar.size()-1;i++) {
+			if(allVar.get(i).pos > allVar.get(i+1).pos) {
+				temp=varToAdd.remove(i+1);
+				allVar.add(i, temp);
+				if(i>0)
+					i-=2;
+				else
+					i-=1;
 				
-				if(nodeX.kids.get(pos).bottom>0)
-					kid.bottom++;
-				else {
-					if(nodeX.variable==node.variable)
-						filsX=nodeX.kids.get(pos).fils;
-					else
-						filsX=nodeX;
-					
-					if(fils.adresse==null) {
-						fils.adresse=filsX;
-						if(!filsX.isLeaf()) {
-							uht.removeFromTable(fils);
-							merge_r(fils);
-							uht.ajoutSansNormaliser(fils);
-						}
-						
-					}else{		//duplication?
-						if(fils.adresse!=filsX){
-								
-							////////////////////
-							//init if needeed
-							if(adresseMap==null)
-								adresseMap=new HashMap<NodeDD, NodeDD>();
-							
-							frerotCurr=adresseMap.get(filsX);
-							if(frerotCurr==null) {
-								frerotCurr=new NodeDD(fils, kid);
-								frerotCurr.cpt=1;
-								frerotCurr.adresse=filsX;
-								
-								if(!filsX.isLeaf()) {
-									merge_r(frerotCurr);
-								}
-								uht.ajoutSansNormaliser(frerotCurr);
-								adresseMap.put(filsX, frerotCurr);
+			}
+		}
+		allVar.add(0, comonVar);
+
 		
-							}else {
-								kid.changerFils(frerotCurr);
-							}
-										        		
-							
-						}
+		//create new vdd blanc		
+		ArrayList<Integer> saveOrder=fakeOrder(allVar);
+		
+		UniqueHashTable uht=new UniqueHashTable(allVar.size());
+		VDD newVdd=new VDD(allVar, uht, true);
+		
+		newVdd.merge(this);
+		newVdd.merge(X);
+		
+		
+		
+		
+		goBackToRightOrder(allVar, saveOrder);
+	}
+	
+	//used by mergeWithMissingVars
+	public ArrayList<Integer> fakeOrder(ArrayList<Var> vars){
+		ArrayList<Integer> saveOrder=new ArrayList<Integer>();
+		for(int i=0; i<vars.size(); i++) {
+				saveOrder.add(vars.get(i).pos);
+				vars.get(i).pos=i;
+		}
+		return saveOrder;
+	}
+	public void goBackToRightOrder(ArrayList<Var> vars, ArrayList<Integer> order){
+		for(int i=0; i<vars.size(); i++) {
+			vars.get(i).pos=order.get(i);
+		}
+	}
+	
+	
+	public boolean modelChecking_r(NodeDD node){
+		boolean res=false;
+		//comone variable
+		if(node.variable==node.adresse.variable) {
+			NodeDD nodeX=node.adresse;
+			for(int i=0; i<node.kids.size(); i++) {
+				if(node.kids.get(i).actif && node.kids.get(i).bottom==0 && nodeX.kids.get(i).bottom==0) {
+					//alreasdy been here?
+					if(node.kids.get(i).fils.adresse!=nodeX.kids.get(i).fils) {
+						//end
+						if(nodeX.kids.get(i).fils.isLeaf())
+							return true;
+						
+						node.kids.get(i).fils.adresse=nodeX.kids.get(i).fils;
+						if(modelChecking_r(node.kids.get(i).fils))
+							return true;
+					}
+				}
+			}
+		}else {
+			for(int i=0; i<node.kids.size(); i++) {
+				if(node.kids.get(i).actif && node.kids.get(i).bottom==0) {
+					//alreasdy been here?
+					if(node.kids.get(i).fils.adresse!=node.adresse) {
+						//end
+						node.kids.get(i).fils.adresse=node.adresse;
+						if(modelChecking_r(node.kids.get(i).fils))
+							return true;
 					}
 				}
 			}
 		}
-
+		
+		return false;
+		
 	}
-
-	//todo add valued data
-	//not working : see merge()
-	public void merge_init(VDD X) {
+	
+	public boolean modelChecking_init(VDD X) {
 		ArrayList<NodeDD> nodes;
 
+		if(X.variables.size()==0) {
+			if(X.first.bottom==0)
+				return true;
+			else
+				return false;
+		}
+		
 		NodeDD startNode=X.first.fils;
 		Var startVar=X.variables.get(0);
 		Var endVar=X.variables.get(X.variables.size()-1);
-		
-		//var 1
 		
 		nodes=uht.get(startVar.pos);
 		
 		for(NodeDD node:nodes) {
 			node.adresse=startNode;
+			
+			if(modelChecking_r(node))
+				return true;
 		}
+		return false;
+		
+	}
+	
+	public boolean modelChecking_init(VDD X, int valeur) {
+		ArrayList<NodeDD> nodes;
+
+		if(X.variables.size()==0) {
+			if(X.first.bottom==0)
+				return true;
+			else
+				return false;
+		}
+		
+		if(X.first.fils.kids.get(valeur).bottom>=1 || !X.first.fils.kids.get(valeur).actif)
+			return false;
+		
+		
+		NodeDD startNode=X.first.fils.kids.get(valeur).fils;
+		Var startVar=startNode.variable;
+		Var endVar=X.variables.get(X.variables.size()-1);
+		
+		if(startNode.isLeaf())
+			return true;
+		
+		nodes=uht.get(startVar.pos);
 		
 		for(NodeDD node:nodes) {
-			uht.removeFromTable(node);
-			merge_r(node);
-			uht.ajoutSansNormaliser(node);
+			node.adresse=startNode;
+			
+			if(modelChecking_r(node))
+				return true;
 		}
-		uht.copieToNull();
+		return false;
 		
+	}
+	
+	public void setWeight(int weight) {
+		Arc a;
+		NodeDD n;
+		
+		a=first;
+		a.s.operation(new Sp(weight));
+		n=a.fils;
+
+		while(!n.isLeaf()) {
+			for(int i=0; i<n.kids.size(); i++) {
+				if(n.variable.consVal[i])
+					a=n.kids.get(i);
+			}
+			a.s.operation(new Sp(weight));
+			n=a.fils;
+		}
 
 		
 	}
-	    		
 
 }

@@ -388,24 +388,42 @@ public class Constraint {
 		return ImpliedValues[val];
 	}
 	
-	public void toVDD(boolean arg_plus) {
+	
+	public void toVDD(boolean arg_plus, Var onTop) {
 		reorderConstraint();
 		
-		ArrayList<Integer> saveOrder=fakeOrder();
+		ArrayList<Integer> saveOrder=null;
+		if(onTop!=null) {
+			saveOrder=fakeOrder(onTop);
+			this.reorderConstraint();
+		}else {
+			saveOrder=fakeOrder();
+		}
+		ArrayList<NodeDD> listNodes;
 		
 		uht=new UniqueHashTable(arity);
 		vdd =new VDD(scopeVar, uht, arg_plus);
 		
 		//init nextTuples
 		ArrayList<Integer> nextTuplesIn=new ArrayList<Integer>();
+		
+		
 		for(int i=0; i<nbTuples; i++) {
 			nextTuplesIn.add(i);
 		}
 		
-		uht.removeFromTable(vdd.first.fils);
-		addSupport(vdd.first.fils, 0, nextTuplesIn);
-		uht.ajoutSansNormaliser(vdd.first.fils);
-
+		if(conflictsConstraint==false) {	//support
+			uht.removeFromTable(vdd.first.fils);
+			addSupport(vdd.first.fils, 0, nextTuplesIn);
+			uht.ajoutSansNormaliser(vdd.first.fils);
+		}else {								//conflict
+			uht.removeFromTable(vdd.first.fils);
+			addConflict(vdd.first.fils, 0, nextTuplesIn);
+			uht.ajoutSansNormaliser(vdd.first.fils);
+		}
+		
+		
+		
 		uht.normaliser();
 		uht.supprNeudNegatifs();
 		uht.copieToNull();			//+ a remonter to null
@@ -414,7 +432,12 @@ public class Constraint {
 		vdd.uht.rechercheNoeudInutile();
 
 		goBackToRightOrder(saveOrder);
+		if(onTop!=null) {
+			this.reorderConstraint();
+		}
+		
 	}
+	
 	
 	//todo PM
 	public void addSupport(NodeDD node, int etage, ArrayList<Integer> tuplesIn) {
@@ -460,12 +483,69 @@ public class Constraint {
 		
 	}
 	
+	
+	public void addConflict(NodeDD node, int etage, ArrayList<Integer> tuplesOut) {
+		NodeDD newFils;
+		ArrayList<Integer> nextTuplesOut=new ArrayList<Integer>();
+		for(int i=0; i<scopeVar.get(etage).domain; i++) {
+			
+			nextTuplesOut.clear();
+			for(int j=0; j<tuplesOut.size(); j++) {
+				if(cons.get(tuplesOut.get(j)).tuple.get(etage)==i) {
+					nextTuplesOut.add(tuplesOut.get(j));
+					tuplesOut.remove(j);			//remove index
+					j--;
+				}
+			}
+			if(nextTuplesOut.size()!=0) {
+				if(etage+1<arity) {
+					if(node.kids.get(i).fils.fathers.size()>1) {					//si il en reste non attribue
+					
+						newFils=new NodeDD(node.kids.get(i).fils, node.kids.get(i));
+						newFils.cpt=1;
+
+						addConflict(newFils, etage+1, nextTuplesOut);
+					
+						uht.ajoutSansNormaliser(newFils);
+					}else {	//it's the last one, no duplicate
+						uht.removeFromTable(node.kids.get(i).fils);
+						addConflict(node.kids.get(i).fils, etage+1, nextTuplesOut);
+						uht.ajoutSansNormaliser(node.kids.get(i).fils);
+
+					}
+					
+				}else {
+					node.kids.get(i).bottom++;
+				}
+					
+
+			}
+			
+		}
+		
+	}
+	
 	//put variable with wrong position indice to fake uht. saved indices are returned
 	public ArrayList<Integer> fakeOrder(){
 		ArrayList<Integer> saveOrder=new ArrayList<Integer>();
 		for(int i=0; i<scopeVar.size(); i++) {
 			saveOrder.add(scopeVar.get(i).pos);
 			scopeVar.get(i).pos=i;
+		}
+		return saveOrder;
+	}
+	public ArrayList<Integer> fakeOrder(Var onTop){
+		ArrayList<Integer> saveOrder=new ArrayList<Integer>();
+		int j=1;
+		for(int i=0; i<scopeVar.size(); i++) {
+			if(scopeVar.get(i)!=onTop) {
+				saveOrder.add(scopeVar.get(i).pos);
+				scopeVar.get(i).pos=j;
+				j++;
+			}else {
+				saveOrder.add(0, scopeVar.get(i).pos);
+				scopeVar.get(i).pos=0;
+			}
 		}
 		return saveOrder;
 	}
