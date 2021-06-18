@@ -412,16 +412,21 @@ public class Constraint {
 			nextTuplesIn.add(i);
 		}
 		
-		if(conflictsConstraint==false) {	//support
+		if(softConstraint==false) {
+			if(conflictsConstraint==false) {	//support
+				uht.removeFromTable(vdd.first.fils);
+				addSupport(vdd.first.fils, 0, nextTuplesIn, vdd.last);
+				uht.ajoutSansNormaliser(vdd.first.fils);
+			}else {								//conflict
+				uht.removeFromTable(vdd.first.fils);
+				addConflict(vdd.first.fils, 0, nextTuplesIn, vdd.last);
+				uht.ajoutSansNormaliser(vdd.first.fils);
+			}
+		}else {
 			uht.removeFromTable(vdd.first.fils);
-			addSupport(vdd.first.fils, 0, nextTuplesIn);
-			uht.ajoutSansNormaliser(vdd.first.fils);
-		}else {								//conflict
-			uht.removeFromTable(vdd.first.fils);
-			addConflict(vdd.first.fils, 0, nextTuplesIn);
+			addSoft(vdd.first.fils, 0, nextTuplesIn, vdd.last);
 			uht.ajoutSansNormaliser(vdd.first.fils);
 		}
-		
 		
 		
 		uht.normaliser();
@@ -440,7 +445,7 @@ public class Constraint {
 	
 	
 	//todo PM
-	public void addSupport(NodeDD node, int etage, ArrayList<Integer> tuplesIn) {
+	public void addSupport(NodeDD node, int etage, ArrayList<Integer> tuplesIn, NodeDDlast lastNode) {
 		NodeDD newFils;
 		ArrayList<Integer> nextTuplesIn=new ArrayList<Integer>();
 		for(int i=0; i<scopeVar.get(etage).domain; i++) {
@@ -460,12 +465,12 @@ public class Constraint {
 						newFils=new NodeDD(node.kids.get(i).fils, node.kids.get(i));
 						newFils.cpt=1;
 
-						addSupport(newFils, etage+1, nextTuplesIn);
+						addSupport(newFils, etage+1, nextTuplesIn, lastNode);
 					
 						uht.ajoutSansNormaliser(newFils);
 					}else {	//it's the last one, no duplicate
 						uht.removeFromTable(node.kids.get(i).fils);
-						addSupport(node.kids.get(i).fils, etage+1, nextTuplesIn);
+						addSupport(node.kids.get(i).fils, etage+1, nextTuplesIn, lastNode);
 						uht.ajoutSansNormaliser(node.kids.get(i).fils);
 
 					}
@@ -475,7 +480,8 @@ public class Constraint {
 				}
 					
 
-			}else {										
+			}else {
+				node.kids.get(i).changerFils(lastNode);
 				node.kids.get(i).bottom++;
 			}
 			
@@ -483,8 +489,55 @@ public class Constraint {
 		
 	}
 	
+	public void addSoft(NodeDD node, int etage, ArrayList<Integer> tuplesIn, NodeDDlast lastNode) {
+		NodeDD newFils;
+		ArrayList<Integer> nextTuplesIn=new ArrayList<Integer>();
+		for(int i=0; i<scopeVar.get(etage).domain; i++) {
+			
+			nextTuplesIn.clear();
+			for(int j=0; j<tuplesIn.size(); j++) {
+				if(cons.get(tuplesIn.get(j)).tuple.get(etage)==i) {
+					nextTuplesIn.add(tuplesIn.get(j));
+					tuplesIn.remove(j);			//remove index
+					j--;
+				}
+			}
+			if(nextTuplesIn.size()!=0) {
+				if(etage+1<arity) {
+					if(node.kids.get(i).fils.fathers.size()>1) {					//si il en reste non attribue
+					
+						newFils=new NodeDD(node.kids.get(i).fils, node.kids.get(i));
+						newFils.cpt=1;
+
+						addSoft(newFils, etage+1, nextTuplesIn, lastNode);
+					
+						uht.ajoutSansNormaliser(newFils);
+					}else {	//it's the last one, no duplicate
+						uht.removeFromTable(node.kids.get(i).fils);
+						addSoft(node.kids.get(i).fils, etage+1, nextTuplesIn, lastNode);
+						uht.ajoutSansNormaliser(node.kids.get(i).fils);
+
+					}
+					
+				}else {
+					for(int j=0; j<nextTuplesIn.size(); j++) {	//normalement il n'en reste plus qu'un, mais si il y en a plusieurs, j'imagine qu'il faut les additioner 
+						if(j>0)
+							System.out.println("warning in Constraint.java addSoft(). j should not be greater than 0. This means that several identics valued constraints add a value.");
+						node.kids.get(i).s.operation(cons.get(nextTuplesIn.get(j)).poid);					
+					}
+						//todo add valuation
+				}
+					
+
+			}else {										
+				node.kids.get(i).changerFils(lastNode);
+			}
+			
+		}
+		
+	}
 	
-	public void addConflict(NodeDD node, int etage, ArrayList<Integer> tuplesOut) {
+	public void addConflict(NodeDD node, int etage, ArrayList<Integer> tuplesOut, NodeDDlast lastNode) {
 		NodeDD newFils;
 		ArrayList<Integer> nextTuplesOut=new ArrayList<Integer>();
 		for(int i=0; i<scopeVar.get(etage).domain; i++) {
@@ -504,18 +557,20 @@ public class Constraint {
 						newFils=new NodeDD(node.kids.get(i).fils, node.kids.get(i));
 						newFils.cpt=1;
 
-						addConflict(newFils, etage+1, nextTuplesOut);
+						addConflict(newFils, etage+1, nextTuplesOut, lastNode);
 					
 						uht.ajoutSansNormaliser(newFils);
 					}else {	//it's the last one, no duplicate
 						uht.removeFromTable(node.kids.get(i).fils);
-						addConflict(node.kids.get(i).fils, etage+1, nextTuplesOut);
+						addConflict(node.kids.get(i).fils, etage+1, nextTuplesOut, lastNode);
 						uht.ajoutSansNormaliser(node.kids.get(i).fils);
 
 					}
 					
 				}else {
+					node.kids.get(i).changerFils(lastNode);
 					node.kids.get(i).bottom++;
+					
 				}
 					
 

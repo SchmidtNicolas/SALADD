@@ -699,7 +699,7 @@ public void removeImplications() {
 
 public void removeUselessConstraints() {
 	for(int i=0; i<constraints.size(); i++) {
-		if(constraints.get(i).computPercentOfRefusedTuples()==0) {
+		if(!constraints.get(i).softConstraint && constraints.get(i).computPercentOfRefusedTuples()==0) {
 			System.out.println("removedoublon");
 			if(!constraints.get(i).removeDoulonTuples()){
 				System.out.println(constraints.get(i).name+" removed because useless (0% of refused tuples)");

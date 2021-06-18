@@ -2128,9 +2128,11 @@ uht.detect();
     	newVDD.toDot(variable.name+"_"+valeur, false);
     	return newVDD;
     }*/
-    public VDD learnUp_all(Var variable, VDD newVDD){
+    public VDD learnUp_all(Var variable, VDD newVDD, UniqueHashTable newUht){
+    	if(newUht==null) {
+    		newUht = new UniqueHashTable(variables.size());
+    	}
     	if(newVDD==null) {
-        	UniqueHashTable newUht = new UniqueHashTable(variables.size());
     		newVDD = new VDD(null, newUht, this.variables);
     	}
     	int variablePos=variable.pos;
@@ -2438,6 +2440,9 @@ uht.detect();
 							father.bottom++;
 							father.changerFils(uht.getLast().get(0));
 							//father.activer(false);
+						}else {
+							//ajout de la valuation
+							father.s.operation(arcX.s);
 						}
 					}
 				}
@@ -2465,6 +2470,9 @@ uht.detect();
 						father.changerFils(uht.getLast().get(0));
 						//father.activer(false);
 					}else {
+						//ajout de la valuation
+						father.s.operation(arcX.s);
+						
 						//pas encore de duplication
 						if(node.adresse==null) {
 							node.adresse=arcX.fils;
@@ -2555,7 +2563,7 @@ uht.detect();
 		NodeDD startNode=X.first.fils;
 		Var startVar=X.variables.get(0);
 		Var endVar=X.variables.get(X.variables.size()-1);
-		
+		Structure startS=X.first.s;
 		//var 1
 		
 		nodes=uht.get(startVar.pos);
@@ -2563,6 +2571,18 @@ uht.detect();
 		for(NodeDD node:nodes) {
 			node.adresse=startNode;
 			uht.removeFromTable(node);
+			if(!startS.isNeutre()) {
+				ArrayList<Arc> fathers=(ArrayList<Arc>) node.fathers.clone();
+				for(Arc father:fathers) {
+					if(father.equals(first)) {
+						father.s.operation(X.first.s);
+					}else {		//cas general
+						uht.removeFromTable(father.pere);
+						father.s.operation(X.first.s);
+						uht.ajoutSansNormaliser(father.pere);
+					}
+				}
+			}
 		}
 		savelist.add(nodes);
 		

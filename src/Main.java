@@ -142,30 +142,31 @@ public class Main {
 
 	}
 	
-	public static void mainnormal(String[] args) {
+	public static void main(String[] args) {
 		
 		SALADD s=new SALADD();
 			
 		ArrayList<String> files=new ArrayList<>();
-		files.add("big.xml");
-		//files.add("bigPrices.xml");
+		files.add("small.xml");
+		files.add("smallPrices.xml");
 		//files.add("cspplan-gripper-level2.xml");
 		//files.add("3blocks.cons");
-
 		
+		boolean flag_learnUp = false;
+		boolean flag_allInOne = false;
 		//compile et sauvegarde le problème si jamais compilé avant, le charge sinon.
 		//si déj�  en memoire, le problème est juste réinitialisé.
 		//s.readProblem(files);
-		s.compilation(files, true, 3, 2, true, 2);
+		s.compilation(files, true, 3, 2, flag_learnUp, flag_allInOne, 2);
 		//s.compilation(files, true, 0, 0, 2);
 
 		s.save("b.dot");
-
-		s.postTreatments(true);
+		
+		//s.postTreatments(flag_allInOne, true);
 		
 		System.out.println(s.nb_nodes() + " noeuds et "+ s.nb_edges() + " arcs ("+s.nb_models()+"models)");
 		System.out.println(s.nb_models());
-		s.countRemovedVar();
+		s.countRemovedVar(flag_allInOne);
 		
 		s.save("a.dot");
 
@@ -222,7 +223,7 @@ public class Main {
 
 	}
 	
-public static void main(String[] args) {
+public static void mainz(String[] args) {
 		
 		SALADD s=new SALADD();
 			
@@ -234,12 +235,13 @@ public static void main(String[] args) {
 
 		s.chargementOBDD("outbdd.dot", 1);
 
-		s.postTreatments(true);
+		boolean flag_allInOne = true;
+		s.postTreatments(flag_allInOne, true);
 
 		
 		System.out.println(s.nb_nodes() + " noeuds et "+ s.nb_edges() + " arcs ("+s.nb_models()+"models)");
 		System.out.println(s.nb_models());
-		s.countRemovedVar();
+		s.countRemovedVar(flag_allInOne);
 		System.out.println();
 		
 		s.save("a.dot");

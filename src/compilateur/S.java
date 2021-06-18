@@ -37,11 +37,11 @@ public class S extends Structure{
 	}
 	
 	public void operation(S str){
-		//nadau
+		//nada
 	}
 	
 	public void initOperation(Structure str, Structure str2){
-		//vive le bearn libre
+		//nada
 	}
 	
 	public S normaliseInf(ArrayList<Structure> liste){

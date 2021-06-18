@@ -78,10 +78,10 @@ public class SALADD {
 	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillée : '2')
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(String file_name, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
+	public void compilation(String file_name, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		ArrayList<String> s=new ArrayList<String>();
 		s.add(file_name);
-		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, arg_affich_text);
+		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, flag_allInOne, arg_affich_text);
 	}
 	/**
 	 * Compilation du fichier de contraintes file_name avec votre heuristique d'ordonnancement de variables perso
@@ -96,10 +96,10 @@ public class SALADD {
 	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillée : '2')
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(String file_name, boolean arg_plus, HeuristiqueVariable arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
+	public void compilation(String file_name, boolean arg_plus, HeuristiqueVariable arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		ArrayList<String> s=new ArrayList<String>();
 		s.add(file_name);
-		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, arg_affich_text);
+		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, flag_allInOne, arg_affich_text);
 	}
 	/**
 	 * Compilation du fichier de contraintes file_name avec votre heuristique d'ordonnancement de contraintes perso
@@ -113,10 +113,10 @@ public class SALADD {
 	 * @param arg_heuristique_cons : votre heuristique personnelle
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(String file_name, boolean arg_plus, int arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
+	public void compilation(String file_name, boolean arg_plus, int arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		ArrayList<String> s=new ArrayList<String>();
 		s.add(file_name);
-		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, arg_affich_text);
+		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, flag_allInOne, arg_affich_text);
 	}
 	/**
 	 * Compilation du fichier de contraintes file_name avec votre heuristique d'ordonnancement de variables et de contraintes
@@ -129,10 +129,10 @@ public class SALADD {
 	 * @param arg_heuristique_cons : votre heuristique personnelle
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(String file_name, boolean arg_plus, HeuristiqueVariable arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
+	public void compilation(String file_name, boolean arg_plus, HeuristiqueVariable arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		ArrayList<String> s=new ArrayList<String>();
 		s.add(file_name);
-		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, arg_affich_text);
+		compilation(s, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, flag_allInOne, arg_affich_text);
 	}
 	/**
 	 * Compilation du (ou des) fichier(s) de contraintes file_names
@@ -146,7 +146,7 @@ public class SALADD {
 	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillée : '2')
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(ArrayList<String> file_names, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
+	public void compilation(ArrayList<String> file_names, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		HeuristiqueVariable[] heuristiquesVariables = {
 				new HeuristiqueVariableOrdreRandom(),
 				new HeuristiqueVariableOrdreChoisi(),
@@ -162,7 +162,7 @@ public class SALADD {
 				new HeuristiqueContraintesBCF(),
 				new HeuristiqueContraintesDomaineMaxDomaineMaxEcartMaxHardFirst(),
 				new HeuristiqueContraintesDurete()};
-		compilation(file_names, arg_plus, heuristiquesVariables[arg_heuristique+1], heuristiquesContraintes[arg_heuristique_cons+2], flag_learnup, arg_affich_text);
+		compilation(file_names, arg_plus, heuristiquesVariables[arg_heuristique+1], heuristiquesContraintes[arg_heuristique_cons+2], flag_learnup, flag_allInOne, arg_affich_text);
 
 	}
 	/**
@@ -177,7 +177,7 @@ public class SALADD {
 	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillée : '2')
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(ArrayList<String> file_names, boolean arg_plus, HeuristiqueVariable arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
+	public void compilation(ArrayList<String> file_names, boolean arg_plus, HeuristiqueVariable arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		HeuristiqueContraintes[] heuristiquesContraintes = {
 				new HeuristiqueContraintesInversion(), 
 				new HeuristiqueContraintesRandom(),
@@ -185,7 +185,7 @@ public class SALADD {
 				new HeuristiqueContraintesBCF(),
 				new HeuristiqueContraintesDomaineMaxDomaineMaxEcartMaxHardFirst(),
 				new HeuristiqueContraintesDurete()};
-		compilation(file_names, arg_plus, arg_heuristique, heuristiquesContraintes[arg_heuristique_cons+2], flag_learnup, arg_affich_text);
+		compilation(file_names, arg_plus, arg_heuristique, heuristiquesContraintes[arg_heuristique_cons+2], flag_learnup, flag_allInOne, arg_affich_text);
 
 	}
 	/**
@@ -200,7 +200,7 @@ public class SALADD {
 	 * @param arg_heuristique_cons : votre heuristique personnelle
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(ArrayList<String> file_names, boolean arg_plus, int arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, int arg_affich_text){
+	public void compilation(ArrayList<String> file_names, boolean arg_plus, int arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		HeuristiqueVariable[] heuristiquesVariables = {
 				new HeuristiqueVariableOrdreRandom(),
 				new HeuristiqueVariableOrdreChoisi(),
@@ -209,7 +209,7 @@ public class SALADD {
 				new HeuristiqueVariableMCSinv(),
 				new HeuristiqueVariableMCSinvPlusUn(),
 				new HeuristiqueVariableForce()};
-		compilation(file_names, arg_plus, heuristiquesVariables[arg_heuristique+1], arg_heuristique_cons, flag_learnup, arg_affich_text);
+		compilation(file_names, arg_plus, heuristiquesVariables[arg_heuristique+1], arg_heuristique_cons, flag_learnup, flag_allInOne, arg_affich_text);
 	}
 
 
@@ -224,7 +224,7 @@ public class SALADD {
 	 * @param arg_heuristique_cons : votre heuristique personnelle
 	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
 	 */
-	public void compilation(ArrayList<String> file_names, boolean arg_plus, HeuristiqueVariable arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup,int arg_affich_text){
+	public void compilation(ArrayList<String> file_names, boolean arg_plus, HeuristiqueVariable arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne,int arg_affich_text){
 		
 		isHistorique=false;
 		
@@ -303,6 +303,8 @@ public class SALADD {
 		start= System.currentTimeMillis();
 		
 		ArrayList<Var> unlearnableVar=new ArrayList<Var>();
+    	UniqueHashTable newUht = new UniqueHashTable(x.variables.size());
+    	
 		for(int i=0; i<cn.nbConstraints; i++){
 			
 			//if(i==15)
@@ -334,7 +336,7 @@ public class SALADD {
 				
 				 ///////////////////
 				c.toVDD(true, null);
-				//c.vdd.toDot("a"+i+"_"+c.name, false);
+				c.vdd.toDot("a"+i+"_"+c.name, false);
 				//x.merge_init(c.vdd);
 				x.merge(c.vdd);						
 				
@@ -343,7 +345,7 @@ public class SALADD {
 				if(arg_affich_text>=2){
 					end=System.currentTimeMillis();
 					System.out.print(i+":sldd"+(i+1)+"/"+xml.nbConstraints+"  nbnoeuds:" + x.uht.size() + " (" + x.uht.sizeArcs() + ")   " + (end-start)/1000+","+(end-start)%1000 + "s " + c.name + " "+ c.computPercentOfRefusedTuples() +"%");
-					countRemovedVar();
+					countRemovedVar(flag_allInOne);
 					System.out.println();
 					//save(c.name);
 				}
@@ -363,7 +365,11 @@ public class SALADD {
 							}
 							if(removable) {
 								x.minMaxConsistance();
-				        		v.saveLearnedGraph(x.learnUp_all(v, null));
+								if(flag_allInOne)
+									v.saveLearnedGraph(x.learnUp_all(v, null, newUht));
+								else
+									v.saveLearnedGraph(x.learnUp_all(v, null, null));
+
 				        		unlearnableVar.addAll(v.graphLearned.variables);
 				        		v.inGraph=false;
 				    			x.forgetOnlyChildParents(v.pos);
@@ -582,13 +588,13 @@ public class SALADD {
 	}
 	
 	
-	protected void procedureCompilation(ArrayList<String> FichiersACompiler, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, String arg_formefinale, String arg_FichierSortie, boolean flag_fichierSortie, boolean flag_beg, boolean flag_learnup, int arg_affich_text){
+	protected void procedureCompilation(ArrayList<String> FichiersACompiler, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, String arg_formefinale, String arg_FichierSortie, boolean flag_fichierSortie, boolean flag_beg, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		
 		long start= System.currentTimeMillis();
 //			long end;
 		
 
-		compilation(FichiersACompiler, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, arg_affich_text);
+		compilation(FichiersACompiler, arg_plus, arg_heuristique, arg_heuristique_cons, flag_learnup, flag_allInOne, arg_affich_text);
 		
 		//affiche les resultats, es supprim les noeuds beg si besoin
 		
@@ -896,10 +902,10 @@ public class SALADD {
 	 * 
 	 * @param problemName : chemin/nom du fichier a compiler (extention incluse)
 	 */
-    public void readProblem(String problemName, boolean flag_learnup){
+    public void readProblem(String problemName, boolean flag_learnup, boolean flag_allInOne){
     	ArrayList<String> list=new ArrayList<String>();
     		list.add(problemName);
-    	readProblem(list, flag_learnup);
+    	readProblem(list, flag_learnup, flag_allInOne);
     }
 
     /**
@@ -910,7 +916,7 @@ public class SALADD {
      * 
      * @param problemName : chemin/nom des fichiers a compiler (extention incluse)
      */
-    public void readProblem(ArrayList<String> problemName, boolean flag_learnup){
+    public void readProblem(ArrayList<String> problemName, boolean flag_learnup, boolean flag_allInOne){
     	String filename=""; 
     	for(int i=0; i<problemName.size(); i++)		
     		filename+=problemName.get(i)+"_";
@@ -924,7 +930,7 @@ public class SALADD {
     				inX=filename;
     				}else{
     					System.out.println("compilation (attention, cette operation peut prendre plusieurs minutes)");																				//sinon heuristique 5
-    					procedureCompilation(problemName, true,  3, 2, "", (filename+"_compiled"), true, true, flag_learnup, 0);
+    					procedureCompilation(problemName, true,  3, 2, "", (filename+"_compiled"), true, true, flag_learnup, flag_allInOne, 0);
     					inX=filename;
     				}
     			}else{
@@ -1265,15 +1271,15 @@ public class SALADD {
     		x.updatePassage(mapVarnameDom);
     	} 
     	
-    	public void postTreatments(boolean verbose) {
+    	public void postTreatments(boolean allInOne, boolean verbose) {
     		long start= System.currentTimeMillis();
-    		forgetOnlychildVariables(verbose);
+    		forgetOnlychildVariables(allInOne, verbose);
     		long end= System.currentTimeMillis();
 			System.out.println("postTreatments time : "+(end-start)/1000+","+(end-start)%1000 + "s ");
 
     	}
     	
-    	public void forgetOnlychildVariables(boolean verbose) {
+    	public void forgetOnlychildVariables(boolean allInOne, boolean verbose) {
     		//forgetting
     		/*ArrayList<Integer> listOnlyChild;
     		listOnlyChild=x.getOnlyChildParents(verbose);
@@ -1292,11 +1298,18 @@ public class SALADD {
     		}
     		System.out.println();
     		
+        	UniqueHashTable newUht = new UniqueHashTable(x.variables.size());
+
+    		
     		Var v;
     		for(int i=0; i<listOnlyChild.size(); i++) {
     			v=x.variables.get(listOnlyChild.get(i));
     			//x.learnUp_all(v, null, true);
-        		v.saveLearnedGraph(x.learnUp_all(v, null));
+    			if(allInOne)
+    				v.saveLearnedGraph(x.learnUp_all(v, null, newUht));
+    			else
+    				v.saveLearnedGraph(x.learnUp_all(v, null, null));
+
         		v.inGraph=false;
         		
 
@@ -1314,14 +1327,16 @@ public class SALADD {
     		//for(Var v : cn.vars)
     	}
     	
-    	public void countRemovedVar() {
+    	public void countRemovedVar(boolean allInOne) {
     		int sizeN=0;
     		int sizeA=0;
     		
 			for(Var v:cn.getVar()) {
 				if(!v.inGraph) {
 					sizeN+=v.graphLearned.uht.size();
-					sizeA+=v.graphLearned.uht.sizeArcs();							
+					sizeA+=v.graphLearned.uht.sizeArcs();
+					if(allInOne)
+						break;
 				}
 			}
 			System.out.print("  taille nodes : "+sizeN+"   ");
