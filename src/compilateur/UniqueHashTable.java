@@ -394,24 +394,18 @@ public class UniqueHashTable {
 	}
 	
 	
-	
-	//opt
-	// /!\ un element peut bouger de place apres modification !!!!!!
 	public ArrayList<NodeDD> get(int var){
-		ArrayList<NodeDD> liste=new ArrayList<NodeDD>();
-		
-		eN=uniqueHashTable[var].values().iterator();
-		while(eN.hasNext())
-			liste.add(eN.next());
+		ArrayList<NodeDD> liste=new ArrayList<NodeDD>(uniqueHashTable[var].values());
 		return liste;
 	}
 	
-	public ArrayList<NodeDD> getLast(){
+	public int getSize(int var){
 		ArrayList<NodeDD> liste=new ArrayList<NodeDD>();
-		
-		eN=uniqueHashTableLast.values().iterator();
-		while(eN.hasNext())
-			liste.add(eN.next());
+		return uniqueHashTable[var].size();
+	}
+	
+	public ArrayList<NodeDD> getLast(){
+		ArrayList<NodeDD> liste=new ArrayList<NodeDD>(uniqueHashTableLast.values());
 		return liste;
 	}
 	

@@ -69,14 +69,14 @@ public class SALADD {
 	/**
 	 * Compilation du fichier de contraintes file_name
 	 * 
-	 * heuristiques d'ordonnancement des variables : -1=aléatoire; 0=ordre naturel; 1=MCF; 2=BW; 3=MCS; 4=MCS+1; 5=Force
-	 * heuristiques d'ordonnancement des contraintes : -1=aléatoire; 0=ordre naturel; 1=BCF; 2=tri par difficulté; 3=tri par dureté
+	 * heuristiques d'ordonnancement des variables : -1=alÃ©atoire; 0=ordre naturel; 1=MCF; 2=BW; 3=MCS; 4=MCS+1; 5=Force
+	 * heuristiques d'ordonnancement des contraintes : -1=alÃ©atoire; 0=ordre naturel; 1=BCF; 2=tri par difficultÃ©; 3=tri par duretÃ©
 	 * 
 	 * @param file_name : chemin/nom du fichier a compiler (extention incluse)
 	 * @param arg_plus : nature du probleme. TRUE si additif, FALSE si multiplicatif
-	 * @param arg_heuristique : heuristique d'ordonnancement des variables a utiliser (valeur conseillée : '3' ou '4')
-	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillée : '2')
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 * @param arg_heuristique : heuristique d'ordonnancement des variables a utiliser (valeur conseillÃ©e : '3' ou '4')
+	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillÃ©e : '2')
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  3 (beaucoup de texte)
 	 */
 	public void compilation(String file_name, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		ArrayList<String> s=new ArrayList<String>();
@@ -85,16 +85,16 @@ public class SALADD {
 	}
 	/**
 	 * Compilation du fichier de contraintes file_name avec votre heuristique d'ordonnancement de variables perso
-	 * Votre heuristique personnelle doit implémenter la classe "HeuristiqueVariable" 
+	 * Votre heuristique personnelle doit implÃ©menter la classe "HeuristiqueVariable" 
 	 * 
-	 * heuristiques d'ordonnancement des variables : -1=aléatoire; 0=ordre naturel; 1=MCF; 2=BW; 3=MCS; 4=MCS+1; 5=Force
-	 * heuristiques d'ordonnancement des contraintes : -1=aléatoire; 0=ordre naturel; 1=BCF; 2=tri par difficulté; 3=tri par dureté
+	 * heuristiques d'ordonnancement des variables : -1=alÃ©atoire; 0=ordre naturel; 1=MCF; 2=BW; 3=MCS; 4=MCS+1; 5=Force
+	 * heuristiques d'ordonnancement des contraintes : -1=alÃ©atoire; 0=ordre naturel; 1=BCF; 2=tri par difficultÃ©; 3=tri par duretÃ©
 	 * 
 	 * @param file_name : chemin/nom du fichier a compiler (extention incluse)
 	 * @param arg_plus : nature du probleme. TRUE si additif, FALSE si multiplicatif
 	 * @param arg_heuristique : votre heuristique personnelle
-	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillée : '2')
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillÃ©e : '2')
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  3 (beaucoup de texte)
 	 */
 	public void compilation(String file_name, boolean arg_plus, HeuristiqueVariable arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		ArrayList<String> s=new ArrayList<String>();
@@ -103,15 +103,15 @@ public class SALADD {
 	}
 	/**
 	 * Compilation du fichier de contraintes file_name avec votre heuristique d'ordonnancement de contraintes perso
-	 * Votre heuristique personnelle doit implémenter la classe "HeuristiqueContraintes" 
+	 * Votre heuristique personnelle doit implÃ©menter la classe "HeuristiqueContraintes" 
 	 *
-	 * heuristiques d'ordonnancement des variables : -1=aléatoire; 0=ordre naturel; 1=MCF; 2=BW; 3=MCS; 4=MCS+1; 5=Force
+	 * heuristiques d'ordonnancement des variables : -1=alÃ©atoire; 0=ordre naturel; 1=MCF; 2=BW; 3=MCS; 4=MCS+1; 5=Force
 	 * 
 	 * @param file_name : chemin/nom du fichier a compiler (extention incluse)
 	 * @param arg_plus : nature du probleme. TRUE si additif, FALSE si multiplicatif
-	 * @param arg_heuristique : heuristique d'ordonnancement des variables a utiliser (valeur conseillée : '3' ou '4')
+	 * @param arg_heuristique : heuristique d'ordonnancement des variables a utiliser (valeur conseillÃ©e : '3' ou '4')
 	 * @param arg_heuristique_cons : votre heuristique personnelle
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  3 (beaucoup de texte)
 	 */
 	public void compilation(String file_name, boolean arg_plus, int arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		ArrayList<String> s=new ArrayList<String>();
@@ -120,14 +120,14 @@ public class SALADD {
 	}
 	/**
 	 * Compilation du fichier de contraintes file_name avec votre heuristique d'ordonnancement de variables et de contraintes
-	 * Votre heuristique personnelle doit implémenter la classe "HeuristiqueVariable" 
-	 * Votre heuristique personnelle doit implémenter la classe "HeuristiqueContraintes" 
+	 * Votre heuristique personnelle doit implÃ©menter la classe "HeuristiqueVariable" 
+	 * Votre heuristique personnelle doit implÃ©menter la classe "HeuristiqueContraintes" 
 	 * 
 	 * @param file_name : chemin/nom du fichier a compiler (extention incluse)
 	 * @param arg_plus : nature du probleme. TRUE si additif, FALSE si multiplicatif
 	 * @param arg_heuristique : votre heuristique personnelle
 	 * @param arg_heuristique_cons : votre heuristique personnelle
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  3 (beaucoup de texte)
 	 */
 	public void compilation(String file_name, boolean arg_plus, HeuristiqueVariable arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		ArrayList<String> s=new ArrayList<String>();
@@ -137,14 +137,14 @@ public class SALADD {
 	/**
 	 * Compilation du (ou des) fichier(s) de contraintes file_names
 	 * 
-	 * heuristiques d'ordonnancement des variables : -1=aléatoire; 0=ordre naturel; 1=MCF; 2=BW; 3=MCS; 4=MCS+1; 5=Force
-	 * heuristiques d'ordonnancement des contraintes : -1=aléatoire; 0=ordre naturel; 1=BCF; 2=tri par difficulté; 3=tri par dureté
+	 * heuristiques d'ordonnancement des variables : -1=alÃ©atoire; 0=ordre naturel; 1=MCF; 2=BW; 3=MCS; 4=MCS+1; 5=Force
+	 * heuristiques d'ordonnancement des contraintes : -1=alÃ©atoire; 0=ordre naturel; 1=BCF; 2=tri par difficultÃ©; 3=tri par duretÃ©
 	 * 
 	 * @param file_names : chemin/nom des fichiers a compiler (extention incluse)
 	 * @param arg_plus : nature du probleme. TRUE si additif, FALSE si multiplicatif
-	 * @param arg_heuristique : heuristique d'ordonnancement des variables a utiliser (valeur conseillée : '3' ou '4')
-	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillée : '2')
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 * @param arg_heuristique : heuristique d'ordonnancement des variables a utiliser (valeur conseillÃ©e : '3' ou '4')
+	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillÃ©e : '2')
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  3 (beaucoup de texte)
 	 */
 	public void compilation(ArrayList<String> file_names, boolean arg_plus, int arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		HeuristiqueVariable[] heuristiquesVariables = {
@@ -167,15 +167,15 @@ public class SALADD {
 	}
 	/**
 	 * Compilation du (ou des) fichier(s) de contraintes file_names avec votre heuristique d'ordonnancement de variables perso
-	 * Votre heuristique personnelle doit implémenter la classe "HeuristiqueVariable" 
+	 * Votre heuristique personnelle doit implÃ©menter la classe "HeuristiqueVariable" 
 	 *
-	 * heuristiques d'ordonnancement des contraintes : -1=aléatoire; 0=ordre naturel; 1=BCF; 2=tri par difficulté; 3=tri par dureté
+	 * heuristiques d'ordonnancement des contraintes : -1=alÃ©atoire; 0=ordre naturel; 1=BCF; 2=tri par difficultÃ©; 3=tri par duretÃ©
 	 * 
 	 * @param file_names : chemin/nom des fichiers a compiler (extention incluse)
 	 * @param arg_plus : nature du probleme. TRUE si additif, FALSE si multiplicatif
 	 * @param arg_heuristique : votre heuristique personnelle
-	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillée : '2')
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 * @param arg_heuristique_cons : heuristique d'ordonnancement des cointraintes a utiliser (valeur conseillÃ©e : '2')
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  3 (beaucoup de texte)
 	 */
 	public void compilation(ArrayList<String> file_names, boolean arg_plus, HeuristiqueVariable arg_heuristique, int arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		HeuristiqueContraintes[] heuristiquesContraintes = {
@@ -190,15 +190,15 @@ public class SALADD {
 	}
 	/**
 	 * Compilation du (ou des) fichier(s) de contraintes file_names avec votre heuristique d'ordonnancement de contraintes perso
-	 * Votre heuristique personnelle doit implémenter la classe "HeuristiqueContraintes" 
+	 * Votre heuristique personnelle doit implÃ©menter la classe "HeuristiqueContraintes" 
 	 *
-	 * heuristiques d'ordonnancement des variables : -1=aléatoire; 0=ordre naturel; 1=MCF; 2=BW; 3=MCS; 4=MCS+1; 5=Force
+	 * heuristiques d'ordonnancement des variables : -1=alÃ©atoire; 0=ordre naturel; 1=MCF; 2=BW; 3=MCS; 4=MCS+1; 5=Force
 	 * 
 	 * @param file_names : chemin/nom des fichiers a compiler (extention incluse)
 	 * @param arg_plus : nature du probleme. TRUE si additif, FALSE si multiplicatif
-	 * @param arg_heuristique : heuristique d'ordonnancement des variables a utiliser (valeur conseillée : '3' ou '4')
+	 * @param arg_heuristique : heuristique d'ordonnancement des variables a utiliser (valeur conseillÃ©e : '3' ou '4')
 	 * @param arg_heuristique_cons : votre heuristique personnelle
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  3 (beaucoup de texte)
 	 */
 	public void compilation(ArrayList<String> file_names, boolean arg_plus, int arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne, int arg_affich_text){
 		HeuristiqueVariable[] heuristiquesVariables = {
@@ -215,14 +215,14 @@ public class SALADD {
 
 	/**
 	 * Compilation du (ou des) fichier(s) de contraintes file_names avec votre heuristique d'ordonnancement de variables et de contraintes
-	 * Votre heuristique personnelle doit implémenter la classe "HeuristiqueVariable" 
-	 * Votre heuristique personnelle doit implémenter la classe "HeuristiqueContraintes" 
+	 * Votre heuristique personnelle doit implÃ©menter la classe "HeuristiqueVariable" 
+	 * Votre heuristique personnelle doit implÃ©menter la classe "HeuristiqueContraintes" 
 	 * 
 	 * @param file_names : chemin/nom des fichiers a compiler (extention incluse)
 	 * @param arg_plus : nature du probleme. TRUE si additif, FALSE si multiplicatif
 	 * @param arg_heuristique : votre heuristique personnelle
 	 * @param arg_heuristique_cons : votre heuristique personnelle
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  3 (beaucoup de texte)
 	 */
 	public void compilation(ArrayList<String> file_names, boolean arg_plus, HeuristiqueVariable arg_heuristique, HeuristiqueContraintes arg_heuristique_cons, boolean flag_learnup, boolean flag_allInOne,int arg_affich_text){
 		
@@ -275,7 +275,6 @@ public class SALADD {
 		x =new VDD(cn.getVarPos(), uht, arg_plus);
 
 		uht.ellagage(cn);
-
 			
 		x.flagMult=(!arg_plus);											//<---
 		x.flagPlus=arg_plus;											//<---
@@ -395,7 +394,7 @@ public class SALADD {
 			//pour chaque valeur	
 				//affecter val
 				//propage up
-				//get variables de decisions impliqu�s
+				//get variables de decisions impliqués
 			//pour cahque variable de decision
 				//
 		
@@ -409,9 +408,9 @@ public class SALADD {
 	
 	/**
 	 * Suppression des noeuds begayants (redondants, inutiles)
-	 * Ces noeuds sont pourtant necessaires pour la quasi totalité des fonctions proposées par cette bibliothèque
+	 * Ces noeuds sont pourtant necessaires pour la quasi totalitÃ© des fonctions proposÃ©es par cette bibliothÃ¨que
 	 * 
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 2 (beaucoup de texte)
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  2 (beaucoup de texte)
 	 */
 	public void getGraphAdjContraints(ArrayList<String> file_names){
 		ConstraintsNetwork cn = new ConstraintsNetwork();
@@ -435,9 +434,9 @@ public class SALADD {
 	
 	/**
 	 * Suppression des noeuds begayants (redondants, inutiles)
-	 * Ces noeuds sont pourtant necessaires pour la quasi totalité des fonctions proposées par cette bibliothèque
+	 * Ces noeuds sont pourtant necessaires pour la quasi totalitÃ© des fonctions proposÃ©es par cette bibliothÃ¨que
 	 * 
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 2 (beaucoup de texte)
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  2 (beaucoup de texte)
 	 */
 	public void suppressionNoeudsBegayants(int arg_affich_text){
 		if(arg_affich_text>=2)
@@ -452,7 +451,7 @@ public class SALADD {
 	
 	/**
 	 * Suppression des noeuds begayants (redondants, inutiles)
-	 * Ces noeuds sont pourtant necessaires pour la quasi totalité des fonctions proposées par cette bibliothèque
+	 * Ces noeuds sont pourtant necessaires pour la quasi totalitÃ© des fonctions proposÃ©es par cette bibliothÃ¨que
 	 */
 	public void suppressionNoeudsBegayants(){
 		this.x.uht.rechercheNoeudInutile();
@@ -462,7 +461,7 @@ public class SALADD {
 	 * Compilation d'un fichier d'historique en vue de la recomandation
 	 * 
 	 * @param file_name : chemin/nom du fichier d'historique a compiler (extention incluse)
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  3 (beaucoup de texte)
 	 */
 	public void compilationDHistorique(String file_name, int arg_affich_text)
 	{
@@ -476,7 +475,7 @@ public class SALADD {
 	 * Attention : Si plusieurs fichiers, ceux ci doivent porter sur un meme ensemble de variables
 	 * 
 	 * @param file_names : chemin/nom des fichiers a compiler (extention incluse)
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  3 (beaucoup de texte)
 	 */
 	public void compilationDHistorique(ArrayList<String> file_names, int arg_affich_text){
 
@@ -620,7 +619,7 @@ public class SALADD {
 	 * chargement d'un fichier dot representant un diagram de decision
 	 * 
 	 * @param file_name : chemin/nom du fichier d'historique a compiler (extention incluse)
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  3 (beaucoup de texte)
 	 */
 	public void chargement(String file_name, int arg_affich_text){
 		LecteurDot l=new LecteurDot(file_name);
@@ -634,7 +633,7 @@ public class SALADD {
 	 * chargement d'un fichier dot representant un diagram de decision issue de cnf2obdd
 	 * 
 	 * @param file_name : chemin/nom du fichier d'historique a compiler (extention incluse)
-	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) à 3 (beaucoup de texte)
+	 * @param arg_affich_text : niveau d'affichage de texte sur la sortie standard. De 0 (pas de texte) Ã  3 (beaucoup de texte)
 	 */
 	public void chargementOBDD(String file_name, int arg_affich_text){
 		LecteurDotOBDD l=new LecteurDotOBDD(file_name);
@@ -694,7 +693,7 @@ public class SALADD {
 	
 	/**
 	 * donne le nombre de modeles du probleme
-	 * /!\ si nombre négatif : dépassement d'entier
+	 * /!\ si nombre nÃ©gatif : dÃ©passement d'entier
 	 * 
 	 * @return nombre de modeles
 	 */
@@ -735,8 +734,8 @@ public class SALADD {
 	}
 	
 	/**
-	 * calcule la variance existant entre les differentes variables de d'un historique. la methode utilisée est fixée
-	 * normalement, c'est fonction est innutile car le calcul de variance est géré automatiquement par la fonction recommandation
+	 * calcule la variance existant entre les differentes variables de d'un historique. la methode utilisÃ©e est fixÃ©e
+	 * normalement, c'est fonction est innutile car le calcul de variance est gÃ©rÃ© automatiquement par la fonction recommandation
 	 * 
 	 * @param prefix_file_name : nom de lecture / sauvegarde (suivant l'existance) du fichier de sauvegarde de la variance
 	 */
@@ -761,7 +760,7 @@ public class SALADD {
 
 	/**
 	 * enregistre le diagramme au format .dot, puis affiche le graph dans un fichier pdf
-	 * il est vivement déconseillé d'utiliser cette fonction sur un diagramme de plusieurs miliers de noeuds
+	 * il est vivement dÃ©conseillÃ© d'utiliser cette fonction sur un diagramme de plusieurs miliers de noeuds
 	 * 
 	 * @param file_name : chemin/nom du fichier de sauvegarde
 	 */
@@ -784,8 +783,8 @@ public class SALADD {
 	 * recomandation sur une variable
 	 * 
 	 * @param var : nom de la variable a recomander
-	 * @param methodeOubli : Methode d'oubli à utiliser (cette methode doit implementer l'interface MethodeOubli).
-	 * @param possibles : liste des alternatives que l'on considère lors de la recommandation. si possible=null, alors on considère toutes les valeurs
+	 * @param methodeOubli : Methode d'oubli Ã  utiliser (cette methode doit implementer l'interface MethodeOubli).
+	 * @param possibles : liste des alternatives que l'on considÃ¨re lors de la recommandation. si possible=null, alors on considÃ¨re toutes les valeurs
 	 * @return un association valeur->probabilite pour la recomandation
 	 */
 	public Map<String, Double> recomandation(String var, MethodeOubli methodeOubli, ArrayList<String> possibles){
@@ -803,7 +802,7 @@ public class SALADD {
 	 * 
 	 * @param var : nom de la variable a recomander
 	 * @param prefix_file_name : nom du fichier d'enregistrement de la variance. doit etre le meme tout au long de la recommandation
-	 * @param possibles : liste des alternatives que l'on considère lors de la recommandation. si possible=null, alors on considère toutes les valeurs
+	 * @param possibles : liste des alternatives que l'on considÃ¨re lors de la recommandation. si possible=null, alors on considÃ¨re toutes les valeurs
 	 * @return un association valeur->probabilite pour la recomandation
 	 */
 	public Map<String, Double> recomandation(String var, String prefix_file_name, ArrayList <String> possibles){
@@ -829,12 +828,12 @@ public class SALADD {
 
 	
 	/**
-	 * Calcul d'inférence, à utiliser sur un SLDDx appris d'un réseau bayésien
-	 * Les valeurs renvoyées sont des probabilités à une constante multiplicative près.
+	 * Calcul d'infÃ©rence, Ã  utiliser sur un SLDDx appris d'un rÃ©seau bayÃ©sien
+	 * Les valeurs renvoyÃ©es sont des probabilitÃ©s Ã  une constante multiplicative prÃ¨s.
 	 * 
 	 * @param var
-	 * @param possibles : liste des alternatives que l'on considère lors de la recommandation. si possible=null, alors on considère toutes les valeurs
-	 * @return une associassion valeurs probabilité
+	 * @param possibles : liste des alternatives que l'on considÃ¨re lors de la recommandation. si possible=null, alors on considÃ¨re toutes les valeurs
+	 * @return une associassion valeurs probabilitÃ©
 	 */
 	public Map<String, Double> calculeDistributionAPosteriori(String var, ArrayList<String> possibles){
 		Var v=cn.getVar(var);
@@ -866,23 +865,23 @@ public class SALADD {
 	}
 	
 	/**
-	 * donne vrai si les deux diagrammes this et s sont équivalent. 
+	 * donne vrai si les deux diagrammes this et s sont Ã©quivalent. 
 	 * Cette fonction ne marche pas si l'un des diagrammes a encore ses noeuds begayants alors que l'autre non.
 	 * 
 	 * @param s : un autre diagramme de type SALADD
-	 * @return true si this est equivalent à s
+	 * @return true si this est equivalent Ã  s
 	 */
 	public boolean equivalence(SALADD s){
 		return this.x.equivalence(s.x);
 	}
 	
 	/**
-	 * réinitialise et conditionne le diagramme dans une configuration précise
-	 * utile pour que plusieurs utilisateur utilisent le configurateur simultanément
-	 * Cette fonction doit être suivie de la fonction propagation()
+	 * rÃ©initialise et conditionne le diagramme dans une configuration prÃ©cise
+	 * utile pour que plusieurs utilisateur utilisent le configurateur simultanÃ©ment
+	 * Cette fonction doit Ãªtre suivie de la fonction propagation()
 	 * 
-	 * @param state : une Map<String, String> associant à chaque variable (K) que l'on souhaite instancier une valeur (V) à instancier.
-	 * @return true si this est equivalent à s
+	 * @param state : une Map<String, String> associant Ã  chaque variable (K) que l'on souhaite instancier une valeur (V) Ã  instancier.
+	 * @return true si this est equivalent Ã  s
 	 */	
 	public void reinitializeInState(Map<String, String> state){
 		x.reinitializeInState(state);
@@ -895,10 +894,10 @@ public class SALADD {
 
 
 	/**
-     * procédure automatisée de chargement de probleme.
-	 * Si le problème n'a jamais été compilé, il est compilé est sauvegardé.
-	 * Si le problème a déjà été compilé, mais n'est pas chargé en mémoire, il le charge.
-	 * Si le problème est déjà chargé en mémoire, il le réinitialise
+     * procÃ©dure automatisÃ©e de chargement de probleme.
+	 * Si le problÃ¨me n'a jamais Ã©tÃ© compilÃ©, il est compilÃ© est sauvegardÃ©.
+	 * Si le problÃ¨me a dÃ©jÃ  Ã©tÃ© compilÃ©, mais n'est pas chargÃ© en mÃ©moire, il le charge.
+	 * Si le problÃ¨me est dÃ©jÃ  chargÃ© en mÃ©moire, il le rÃ©initialise
 	 * 
 	 * @param problemName : chemin/nom du fichier a compiler (extention incluse)
 	 */
@@ -909,10 +908,10 @@ public class SALADD {
     }
 
     /**
-     * procédure automatisée de chargement de probleme.
-	 * Si le problème n'a jamais été compilé, il est compilé est sauvegardé.
-	 * Si le problème a déjà été compilé, mais n'est pas chargé en mémoire, il le charge.
-	 * Si le problème est déjà chargé en mémoire, il le réinitialise
+     * procÃ©dure automatisÃ©e de chargement de probleme.
+	 * Si le problÃ¨me n'a jamais Ã©tÃ© compilÃ©, il est compilÃ© est sauvegardÃ©.
+	 * Si le problÃ¨me a dÃ©jÃ  Ã©tÃ© compilÃ©, mais n'est pas chargÃ© en mÃ©moire, il le charge.
+	 * Si le problÃ¨me est dÃ©jÃ  chargÃ© en mÃ©moire, il le rÃ©initialise
      * 
      * @param problemName : chemin/nom des fichiers a compiler (extention incluse)
      */
@@ -925,7 +924,7 @@ public class SALADD {
     	if(x==null || inX.compareTo(filename)!=0){
     			File f=new File(filename+"_compiled.dot");
     			if(f.canRead()){
-    				System.out.println("lecture du fichier compilé \""+filename+"_compiled.dot\"");
+    				System.out.println("lecture du fichier compilÃ© \""+filename+"_compiled.dot\"");
     				this.chargement(filename+"_compiled", 0);
     				inX=filename;
     				}else{
@@ -934,7 +933,7 @@ public class SALADD {
     					inX=filename;
     				}
     			}else{
-    			//	System.out.println("Réinitialisation du problème");
+    			//	System.out.println("RÃ©initialisation du problÃ¨me");
     				x.deconditionerAll();
     			}
     	}
@@ -964,7 +963,7 @@ public class SALADD {
     
     	/**
     	 * propagation complette.
-    	 * cette methode doit être appelée apres les fonctions readProblem() compilation() reinitializeInState() et reinitialisation()
+    	 * cette methode doit Ãªtre appelÃ©e apres les fonctions readProblem() compilation() reinitializeInState() et reinitialisation()
     	 */
 		public void propagation(){
 			x.minMaxConsistance();
@@ -1275,7 +1274,7 @@ public class SALADD {
     		long start= System.currentTimeMillis();
     		forgetOnlychildVariables(allInOne, verbose);
     		long end= System.currentTimeMillis();
-			System.out.println("postTreatments time : "+(end-start)/1000+","+(end-start)%1000 + "s ");
+			//System.out.println("postTreatments time : "+(end-start)/1000+","+(end-start)%1000 + "s ");
 
     	}
     	
@@ -1292,11 +1291,11 @@ public class SALADD {
     		
     		ArrayList<Integer> listOnlyChild;
     		listOnlyChild=x.getOnlyChildParents(verbose);
-    		System.out.print("start forgetOnlychildVariables" + " ");
-    		for(int i=0; i<listOnlyChild.size(); i++) {
-    			System.out.print(x.variables.get(listOnlyChild.get(i)).name+" ");
-    		}
-    		System.out.println();
+    		//System.out.print("start forgetOnlychildVariables" + " ");
+    		//for(int i=0; i<listOnlyChild.size(); i++) {
+    		//	System.out.print(x.variables.get(listOnlyChild.get(i)).name+" ");
+    		//}
+    		//System.out.println();
     		
         	UniqueHashTable newUht = new UniqueHashTable(x.variables.size());
 
@@ -1312,15 +1311,15 @@ public class SALADD {
 
         		v.inGraph=false;
         		
+    			x.forgetOnlyChildParents(listOnlyChild.get(i));
 
     		}
     		
     		//forgetting
     		
-    		for(int i:listOnlyChild) {
-    			x.forgetOnlyChildParents(i);
-    			
-    		}
+    		//for(int i:listOnlyChild) {
+    		//	x.forgetOnlyChildParents(i);	
+    		//}
     	}
     	
     	public void updateVarNotInGraph() {
@@ -1339,8 +1338,9 @@ public class SALADD {
 						break;
 				}
 			}
-			System.out.print("  taille nodes : "+sizeN+"   ");
-			System.out.print("taille arcs : "+sizeA);
+			//System.out.print("taille nodes : "+sizeN+"   ");
+			//System.out.print("taille arcs : "+sizeA);
+    		System.out.println("satellites " + sizeN +" ("+ sizeA + ")");
 
     	}
     	

@@ -1914,15 +1914,20 @@ uht.detect();
 			}
 			
 			//for every incoming edge
-			while(n.fathers.size()>0 && etage!=0) {
-
-				pere=n.fathers.get(0).pere;
-				uht.removeFromTable(pere);
-				
-				n.fathers.get(0).changerFils(child);
-				
-				uht.ajoutSansNormaliser(pere);
+			if(n.fathers.get(0).equals(first)) {
+				first.changerFils(child);
+			}else {
+				while(n.fathers.size()>0 && etage!=0) {
+	
+					pere=n.fathers.get(0).pere;
+					uht.removeFromTable(pere);
+					
+					n.fathers.get(0).changerFils(child);
+					
+					uht.ajoutSansNormaliser(pere);
+				}
 			}
+			
 			//delete n
 			uht.removeDefinitely(n);
 		}
@@ -2156,22 +2161,20 @@ uht.detect();
     	for(int val=0; val<variable.domain; val++) {
 
     		atLeastOneModel=false;
-    		conditioner(variablePos, val);
-    		minMaxConsistanceMaj(variablePos, true);
-    		uht.countingToMoinsUn();
+    	
     	
     	    	
     	
-    	
-	    	for(int i=0; i<uht.get(variablePos).size(); i++){
-	    		if(uht.get(variablePos).get(i).kidsdiffbottomActif()>0) {
-	    			uht.get(variablePos).get(i).counting=0;
-	    			atLeastOneModel=true;
-	    			atLeastOneModelForAll=true;
-	    		}
-	    		else
-	    			uht.get(variablePos).get(i).counting=-1;
-	    	}    	
+    		ArrayList<NodeDD> liste = uht.get(variablePos);
+    		for(int i=0; i<liste.size(); i++){
+    		if(liste.get(i).kids.get(val).bottom==0) {
+    			liste.get(i).counting=0;
+    			atLeastOneModel=true;
+    			atLeastOneModelForAll=true;
+    		}
+    		else
+    			liste.get(i).counting=-1;
+    		}	
 	    	
 	    	
 	    	for(int i=variablePos-1; i>=0; i--){
@@ -2182,8 +2185,6 @@ uht.detect();
 	        			first=isNewFirst;
 	        	}
 	    	}
-	    	deconditioner(variable);
-	    	minMaxConsistance();
 	    	
 	    	
 	    	//make newVDD real
@@ -2216,7 +2217,7 @@ uht.detect();
     		newVDD.first.bottom++;
     	}
     	
-    	newVDD.toDot(variable.name+"_all", false);
+//    	newVDD.toDot(variable.name+"_all", false);
     	return newVDD;
     }  
     
@@ -2253,20 +2254,18 @@ uht.detect();
     	    	allNewNodes.set(0, nx.get(val));
     		}
     		
-    		conditioner(variablePos, val);
-    		minMaxConsistanceMaj(variablePos, true);
-    		uht.countingToMoinsUn();
     	
-    	    	
+    		
     	
-    	
-	    	for(int i=0; i<uht.get(variablePos).size(); i++){
-	    		if(uht.get(variablePos).get(i).kidsdiffbottomActif()>0) {
-	    			uht.get(variablePos).get(i).counting=0;
+ 
+    		ArrayList<NodeDD> liste = uht.get(variablePos);
+	    	for(int i=0; i<liste.size(); i++){
+	    		if(liste.get(i).kids.get(val).bottom==0) {
+	    			liste.get(i).counting=0;
 	    			atLeastOneModel=true;
 	    		}
 	    		else
-	    			uht.get(variablePos).get(i).counting=-1;
+	    			liste.get(i).counting=-1;
 	    	}    	
 	    	
 	    	
@@ -2278,8 +2277,6 @@ uht.detect();
 	        			first=isNewFirst;
 	        	}
 	    	}
-	    	deconditioner(variable);
-	    	minMaxConsistance();
 	    	
 	    	//make newVDD real
 	    	if(first==null) {
@@ -2343,13 +2340,10 @@ uht.detect();
 				
 				//find first diff bottom==0
 				if(origine==-2) {
-					if(a.actif)
-						origine=a.fils.counting;
-					else
-						origine=-1;
+					origine=a.fils.counting;
 				}
 				else {
-					if((a.actif && a.fils.counting!=origine) || (!a.actif && origine!=-1)) {
+					if(a.fils.counting!=origine) {
 						allTheSame=false;
 						break;
 					}
@@ -2390,7 +2384,7 @@ uht.detect();
 			}
 			
 			//add newNode to uht
-			int cptNode=newVDD.uht.get(n.variable.pos).size();
+			int cptNode=newVDD.uht.getSize(n.variable.pos);
 			newNode=newVDD.uht.ajoutSansNormaliser(newNode);
 			if(newVDD.uht.get(n.variable.pos).size()>cptNode) {
 				allNewNodes.add(newNode);

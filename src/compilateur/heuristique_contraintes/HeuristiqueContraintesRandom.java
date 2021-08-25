@@ -26,6 +26,26 @@ public class HeuristiqueContraintesRandom implements HeuristiqueContraintes {
 
 	public ArrayList<Integer> reorganiseContraintes(ArrayList<Var> var, ConstraintsNetwork cn)
 	{
+		System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+		ArrayList<Integer> reorga=new ArrayList<Integer>();
+		
+		for(int i=var.size()-1; i>=0; i--) {
+			for(int j=0; j<cn.nbConstraints; j++) {
+				if(cn.getCons(j)!=null){
+					if(cn.getCons(j).scopeVar.contains(var.get(i)) && !reorga.contains(j)) {
+						reorga.add(j);
+					}
+				}
+			}
+		}
+		
+		for(int i=0; i<cn.nbConstraints; i++){
+			if(cn.getCons(i)==null)
+				reorga.add(i);
+		}
+		
+		return reorga;
+		/*
 		int nbContraintes = cn.nbConstraints;
 		ArrayList<Integer> reorga=new ArrayList<Integer>();
 	reorga.add(0);
@@ -34,7 +54,7 @@ public class HeuristiqueContraintesRandom implements HeuristiqueContraintes {
 		random=(int)Math.floor(Math.random()*(reorga.size()+1));
 		reorga.add(random, i);
 	}
-		return reorga;
+		return reorga;*/
 	}	
 	
 }
